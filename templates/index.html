@@ -3,23 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stack Overflow — Arena</title>
+  <title>Pixel Survival — Fresh Build</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
 </head>
 <body>
-  <main class="shell">
-    <header><div><p class="eyebrow">A runtime survival game</p><h1>STACK<span>OVERFLOW</span></h1></div><div class="header-note">VERTICAL SLICE <b>01</b></div></header>
-    <section class="hud" aria-label="Run status">
-      <div><small>TIME</small><strong id="timer">90.0</strong></div>
-      <div><small>CPU CYCLES</small><strong id="cycles">0</strong></div>
-      <div><small>ELIMINATED</small><strong id="kills">0</strong></div>
-      <div class="health"><small>RUNTIME</small><strong id="health">♥ ♥ ♥</strong></div>
-    </section>
-    <div class="stage"><canvas id="arena" width="960" height="600" aria-label="Game arena"></canvas>
-      <div id="overlay" class="overlay"><p class="eyebrow">SURVIVE. COLLECT. EXTRACT.</p><h2>Keep the process alive.</h2><p>Move with <b>WASD</b>. Aim with the mouse. Hold <b>left click</b> to fire Ping.</p><button id="start">START RUN</button></div>
+  <div id="error-banner" style="display:none; background:red; color:white; padding:10px; text-align:center; font-family:monospace;"></div>
+
+  <div class="game-shell">
+    <header class="top-bar">
+      <h1>RETRO<span>SURVIVE</span></h1>
+      <div class="stats">
+        <span>POS: <strong id="ui-pos">0, 0</strong></span>
+        <span>HP: <strong id="ui-hp">3</strong></span>
+      </div>
+    </header>
+
+    <div class="viewport">
+      <canvas id="screen" width="960" height="540"></canvas>
+      
+      <div id="start-screen" class="screen-overlay">
+        <h2>READY TO DEPLOY?</h2>
+        <p>Explore the procedural grid. Return to (0,0) for the Hub.</p>
+        <button id="launch-btn">ENTER SIMULATION</button>
+      </div>
     </div>
-    <footer><span><i class="dot"></i> PING <kbd>LEFT CLICK</kbd></span><span>BUGS DROP CPU CYCLES</span><span>EXTRACT BEFORE THE TIMER ENDS</span></footer>
-  </main>
+  </div>
+
   <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

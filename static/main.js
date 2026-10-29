@@ -1,184 +1,182 @@
-import { ARENA, BUG, DROP, PING, PLAYER, RUN_SECONDS } from './config.js';
-
-const canvas = document.querySelector('#arena');
-const ctx = canvas.getContext('2d');
-const overlay = document.querySelector('#overlay');
-const startButton = document.querySelector('#start');
-const timerEl = document.querySelector('#timer');
-const cyclesEl = document.querySelector('#cycles');
-const killsEl = document.querySelector('#kills');
-const healthEl = document.querySelector('#health');
-const keys = Object.create(null);
-const pointer = { x: ARENA.width / 2 + 100, y: ARENA.height / 2, down: false };
-
-let player, bugs, shots, drops, elapsed, cycles, kills, spawnClock, fireClock;
-let active = false, previous = 0, animationId = 0;
-
-function resetRun() {
-  player = { x: ARENA.width / 2, y: ARENA.height / 2, health: PLAYER.maxHealth, invulnerable: 0, facing: 0 };
-  bugs = []; shots = []; drops = [];
-  elapsed = 0; cycles = 0; kills = 0; spawnClock = 0; fireClock = 0;
-  active = true;
-  overlay.classList.add('hidden');
-  updateHud();
-  previous = performance.now();
-  cancelAnimationFrame(animationId);
-  animationId = requestAnimationFrame(frame);
-}
-
-function updateHud() {
-  timerEl.textContent = Math.max(0, RUN_SECONDS - elapsed).toFixed(1);
-  cyclesEl.textContent = String(cycles);
-  killsEl.textContent = String(kills);
-  healthEl.textContent = Array.from({ length: PLAYER.maxHealth }, (_, i) => i < player.health ? '♥' : '♡').join(' ');
-}
-
-function gameOver(reason, extracted = false) {
-  active = false;
-  const retained = extracted ? cycles : Math.floor(cycles / 2);
-  overlay.innerHTML = `<p class="eyebrow">${extracted ? 'RUN COMPLETE' : 'PROCESS TERMINATED'}</p><h2>${extracted ? 'Successful extraction.' : 'StackOverflowError'}</h2><p>${reason}<br>CPU cycles recovered: <b>${retained}</b> / ${cycles} · Bugs eliminated: <b>${kills}</b></p><button id="start">${extracted ? 'RUN AGAIN' : 'RETRY'}</button>`;
-  overlay.classList.remove('hidden');
-  overlay.querySelector('button').addEventListener('click', resetRun, { once: true });
-  draw();
-}
-
-function canvasPoint(event) {
-  const rect = canvas.getBoundingClientRect();
-  return { x: (event.clientX - rect.left) * ARENA.width / rect.width, y: (event.clientY - rect.top) * ARENA.height / rect.height };
-}
-
-window.addEventListener('keydown', event => {
-  if (['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)) event.preventDefault();
-  keys[event.key.toLowerCase()] = true;
+window.addEventListener('error', (e) => {
+  const banner = document.getElementById('error-banner');
+  if (banner) {
+    banner.style.display = 'block';
+    banner.textContent = `JS Error: ${e.message} at line ${e.lineno}`;
+  }
 });
-window.addEventListener('keyup', event => { keys[event.key.toLowerCase()] = false; });
-window.addEventListener('blur', () => { for (const key of Object.keys(keys)) keys[key] = false; pointer.down = false; });
-canvas.addEventListener('pointermove', event => Object.assign(pointer, canvasPoint(event)));
-canvas.addEventListener('pointerdown', event => { if (event.button === 0) { Object.assign(pointer, canvasPoint(event)); pointer.down = true; } });
-window.addEventListener('pointerup', event => { if (event.button === 0) pointer.down = false; });
-canvas.addEventListener('contextmenu', event => event.preventDefault());
-startButton.addEventListener('click', resetRun);
 
-function spawnBug() {
-  const side = Math.floor(Math.random() * 4);
-  bugs.push({
-    x: side === 0 ? -18 : side === 1 ? ARENA.width + 18 : Math.random() * ARENA.width,
-    y: side === 2 ? -18 : side === 3 ? ARENA.height + 18 : Math.random() * ARENA.height,
-    health: BUG.health, attack: null, hitFlash: 0,
+document.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('screen');
+  const ctx = canvas.getContext('2d');
+  const overlay = document.getElementById('start-screen');
+  const launchBtn = document.getElementById('launch-btn');
+  const posEl = document.getElementById('ui-pos');
+  const hpEl = document.getElementById('ui-hp');
+
+  let isRunning = false;
+  const player = { 
+    x: 0, 
+    y: 0, 
+    speed: 210, 
+    hp: 3,
+    facingRight: true
+  };
+  
+  const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  const keys = {};
+
+  // Input listeners
+  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  // Track mouse relative to canvas
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
   });
-}
 
-function firePing() {
-  const dx = pointer.x - player.x, dy = pointer.y - player.y;
-  const distance = Math.hypot(dx, dy);
-  if (!distance) return;
-  const length = Math.min(distance, PING.range);
-  const vx = dx / distance * PING.projectileSpeed, vy = dy / distance * PING.projectileSpeed;
-  shots.push({ x: player.x, y: player.y, vx, vy, left: length });
-  player.facing = Math.atan2(dy, dx);
-}
+  launchBtn.addEventListener('click', () => {
+    overlay.classList.add('hidden');
+    isRunning = true;
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  });
 
-function damagePlayer() {
-  if (player.invulnerable > 0) return;
-  player.health--;
-  player.invulnerable = PLAYER.invulnerability;
-  if (player.health <= 0) gameOver('The runtime was overwhelmed by bugs.');
-}
+  let lastTime = 0;
 
-function update(dt) {
-  elapsed += dt;
-  if (elapsed >= RUN_SECONDS) { elapsed = RUN_SECONDS; updateHud(); gameOver('You survived the full arena run.', true); return; }
-  player.invulnerable = Math.max(0, player.invulnerable - dt);
-  let mx = Number(keys.d || keys.arrowright) - Number(keys.a || keys.arrowleft);
-  let my = Number(keys.s || keys.arrowdown) - Number(keys.w || keys.arrowup);
-  const magnitude = Math.hypot(mx, my) || 1;
-  player.x = Math.max(PLAYER.radius, Math.min(ARENA.width - PLAYER.radius, player.x + mx / magnitude * PLAYER.speed * dt));
-  player.y = Math.max(PLAYER.radius, Math.min(ARENA.height - PLAYER.radius, player.y + my / magnitude * PLAYER.speed * dt));
-  player.facing = Math.atan2(pointer.y - player.y, pointer.x - player.x);
+  function drawComputerScientist(centerX, centerY, aimAngle) {
+    ctx.save();
+    ctx.translate(centerX, centerY);
 
-  const spawnEvery = Math.max(BUG.spawnEnd, BUG.spawnStart - elapsed / RUN_SECONDS * (BUG.spawnStart - BUG.spawnEnd));
-  spawnClock += dt;
-  while (spawnClock >= spawnEvery) { spawnClock -= spawnEvery; spawnBug(); }
-  fireClock -= dt;
-  if (pointer.down && fireClock <= 0) { firePing(); fireClock = PLAYER.fireInterval; }
+    // Determine facing direction based on mouse position relative to player center
+    player.facingRight = mouse.x >= centerX;
 
-  for (const bug of bugs) {
-    bug.hitFlash = Math.max(0, bug.hitFlash - dt);
-    if (bug.attack) {
-      bug.attack.time -= dt;
-      if (bug.attack.time <= 0) {
-        if (Math.hypot(player.x - bug.attack.x, player.y - bug.attack.y) < 44) damagePlayer();
-        bug.attack = null;
-      }
-      continue;
+    // --- BODY DRAWING ---
+    // Lab coat / Torso
+    ctx.fillStyle = '#f8fafc'; // White lab coat
+    ctx.fillRect(-10, -12, 20, 24);
+
+    // Inner Shirt (Dark shirt with terminal cyan accent)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -12, 8, 16);
+    ctx.fillStyle = '#38bdf8'; // Glowing terminal shirt icon/detail
+    ctx.fillRect(-2, -8, 4, 6);
+
+    // Pants / Legs
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-8, 12, 6, 12); // Left leg
+    ctx.fillRect(2, 12, 6, 12);  // Right leg
+
+    // Head / Skin
+    ctx.fillStyle = '#fbe4d8'; // Skin tone
+    ctx.fillRect(-8, -26, 16, 14);
+
+    // Hair
+    ctx.fillStyle = '#475569'; // Messy programmer hair
+    ctx.fillRect(-9, -29, 18, 6);
+
+    // Glasses
+    ctx.fillStyle = '#0f172a'; // Glasses frame
+    if (player.facingRight) {
+      ctx.fillRect(0, -22, 7, 5);
+      ctx.fillStyle = '#38bdf8'; // Lens glint
+      ctx.fillRect(2, -20, 4, 3);
+    } else {
+      ctx.fillRect(-7, -22, 7, 5);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-6, -20, 4, 3);
     }
-    const dx = player.x - bug.x, dy = player.y - bug.y, distance = Math.hypot(dx, dy) || 1;
-    if (distance < 82) bug.attack = { x: player.x, y: player.y, time: 0.65, total: 0.65 };
-    else { bug.x += dx / distance * BUG.speed * dt; bug.y += dy / distance * BUG.speed * dt; }
+
+    ctx.restore();
+
+    // --- ARM & CYBER-SWORD DRAWING ---
+    ctx.save();
+    // Anchor arm to shoulder joint
+    const shoulderX = player.facingRight ? centerX + 4 : centerX - 4;
+    const shoulderY = centerY - 2;
+    ctx.translate(shoulderX, shoulderY);
+    ctx.rotate(aimAngle);
+
+    // Arm (Sleeve)
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillRect(0, -3, 12, 6);
+
+    // Hand
+    ctx.fillStyle = '#fbe4d8';
+    ctx.fillRect(12, -2, 4, 4);
+
+    // Cyber Sword Hilt
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(16, -4, 4, 8); // Crossguard
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(12, -2, 5, 4); // Handle
+
+    // Cyber Sword Blade (Glowing Energy Blade)
+    ctx.fillStyle = '#38bdf8'; // Outer glow
+    ctx.fillRect(20, -3, 28, 6);
+    ctx.fillStyle = '#f0fdf4'; // Bright core
+    ctx.fillRect(22, -1, 24, 2);
+
+    ctx.restore();
   }
 
-  for (const shot of shots) {
-    const step = Math.min(shot.left, PING.projectileSpeed * dt);
-    shot.x += shot.vx / PING.projectileSpeed * step;
-    shot.y += shot.vy / PING.projectileSpeed * step;
-    shot.left -= step;
-    for (const bug of bugs) {
-      if (bug.health > 0 && Math.hypot(shot.x - bug.x, shot.y - bug.y) < BUG.radius + 4) {
-        bug.health -= PING.damage; bug.hitFlash = 0.09; shot.left = -1;
-        if (bug.health <= 0) { kills++; drops.push({ x: bug.x, y: bug.y, amount: DROP.cycles }); }
-        break;
-      }
+  function loop(timestamp) {
+    if (!isRunning) return;
+
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+    lastTime = timestamp;
+
+    // 1. UPDATE
+    let dx = 0, dy = 0;
+    if (keys['w'] || keys['arrowup']) dy -= 1;
+    if (keys['s'] || keys['arrowdown']) dy += 1;
+    if (keys['a'] || keys['arrowleft']) dx -= 1;
+    if (keys['d'] || keys['arrowright']) dx += 1;
+
+    if (dx !== 0 && dy !== 0) {
+      dx *= 0.7071;
+      dy *= 0.7071;
     }
-  }
-  shots = shots.filter(shot => shot.left > 0 && shot.x > -8 && shot.x < ARENA.width + 8 && shot.y > -8 && shot.y < ARENA.height + 8);
-  bugs = bugs.filter(bug => bug.health > 0);
-  for (const drop of drops) {
-    if (Math.hypot(player.x - drop.x, player.y - drop.y) < PLAYER.radius + DROP.radius + 2) { cycles += drop.amount; drop.collected = true; }
-  }
-  drops = drops.filter(drop => !drop.collected);
-  updateHud();
-}
 
-function drawGrid() {
-  ctx.strokeStyle = '#14212a'; ctx.lineWidth = 1;
-  for (let x = 0; x <= ARENA.width; x += 40) { ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, ARENA.height); ctx.stroke(); }
-  for (let y = 0; y <= ARENA.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(ARENA.width, y + .5); ctx.stroke(); }
-}
+    player.x += dx * player.speed * dt;
+    player.y += dy * player.speed * dt;
 
-function draw() {
-  ctx.clearRect(0, 0, ARENA.width, ARENA.height);
-  ctx.fillStyle = '#0b1117'; ctx.fillRect(0, 0, ARENA.width, ARENA.height); drawGrid();
-  for (const drop of drops) {
-    ctx.fillStyle = '#f6c85f'; ctx.beginPath(); ctx.arc(drop.x, drop.y, DROP.radius, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#31250e'; ctx.font = 'bold 9px ui-monospace,monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('+', drop.x, drop.y + .5);
-  }
-  for (const shot of shots) { ctx.strokeStyle = '#78f4cb'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(shot.x, shot.y); ctx.lineTo(shot.x - shot.vx * .018, shot.y - shot.vy * .018); ctx.stroke(); }
-  for (const bug of bugs) {
-    if (bug.attack) {
-      ctx.strokeStyle = `rgba(255,104,122,${.55 + .35 * Math.sin(performance.now() / 75)})`;
-      ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bug.attack.x, bug.attack.y, 44, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = '#ff687a'; ctx.beginPath(); ctx.arc(bug.attack.x, bug.attack.y, 3, 0, Math.PI * 2); ctx.fill();
+    // Calculate aim angle toward mouse cursor
+    const playerCenterX = canvas.width / 2;
+    const playerCenterY = canvas.height / 2;
+    const aimAngle = Math.atan2(mouse.y - playerCenterY, mouse.x - playerCenterX);
+
+    // Update UI text
+    posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
+    hpEl.textContent = '♥'.repeat(player.hp);
+
+    // 2. DRAW
+    ctx.fillStyle = '#030712';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid lines
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineWidth = 1;
+    const tileSize = 64;
+    const offsetX = Math.floor(-player.x % tileSize);
+    const offsetY = Math.floor(-player.y % tileSize);
+
+    for (let x = offsetX; x < canvas.width; x += tileSize) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
     }
-    ctx.fillStyle = bug.hitFlash ? '#fff' : '#ff687a'; ctx.beginPath(); ctx.arc(bug.x, bug.y, BUG.radius, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#541e2c'; ctx.beginPath(); ctx.arc(bug.x, bug.y, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#425159'; ctx.fillRect(bug.x - 13, bug.y - 20, 26, 3);
-    ctx.fillStyle = '#ff8794'; ctx.fillRect(bug.x - 13, bug.y - 20, 26 * bug.health / BUG.health, 3);
+    for (let y = offsetY; y < canvas.height; y += tileSize) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
+    // Draw Computer Scientist Player & Aiming Cyber Sword
+    drawComputerScientist(playerCenterX, playerCenterY, aimAngle);
+
+    requestAnimationFrame(loop);
   }
-  ctx.save(); ctx.translate(player.x, player.y); ctx.rotate(player.facing);
-  ctx.strokeStyle = 'rgba(109,242,193,.13)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(PING.range, 0); ctx.stroke();
-  ctx.fillStyle = '#6df2c1'; ctx.beginPath(); ctx.arc(0, 0, PLAYER.radius, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#09231a'; ctx.fillRect(3, -3, 9, 6); ctx.restore();
-  ctx.strokeStyle = '#9bffe0'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 7, 0, Math.PI * 2); ctx.moveTo(pointer.x - 12, pointer.y); ctx.lineTo(pointer.x + 12, pointer.y); ctx.moveTo(pointer.x, pointer.y - 12); ctx.lineTo(pointer.x, pointer.y + 12); ctx.stroke();
-  if (player.invulnerable > 0 && Math.floor(performance.now() / 80) % 2 === 0) { ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.beginPath(); ctx.arc(player.x, player.y, PLAYER.radius + 4, 0, Math.PI * 2); ctx.fill(); }
-}
 
-function frame(now) {
-  if (!active) return;
-  const dt = Math.min((now - previous) / 1000, 0.05);
-  previous = now;
-  update(dt);
-  draw();
-  if (active) animationId = requestAnimationFrame(frame);
-}
-
-draw();
+  // Initial draw pass
+  ctx.fillStyle = '#030712';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+});
