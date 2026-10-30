@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const shopStatusEl = document.getElementById('shop-status');
   const healButton = document.getElementById('buy-heal');
   const healthButton = document.getElementById('buy-health');
+  const swordButton = document.getElementById('buy-sword');
   const almanacPanel = document.getElementById('almanac-panel');
   const almanacToggle = document.getElementById('almanac-toggle');
 
@@ -57,7 +58,29 @@ document.addEventListener('DOMContentLoaded', () => {
     healthButton.textContent = `+1 max health · ${healthUpgradeCost} cycles`;
     healButton.disabled = player.cycles < 10 || player.hp >= player.maxHp;
     healthButton.disabled = player.cycles < healthUpgradeCost || player.maxHp >= 10;
+    const nextSword = CONFIG.swords[player.swordTier + 1];
+    if (nextSword) {
+      swordButton.textContent = `${nextSword.name} · ${nextSword.damage} damage · ${nextSword.price} cycles`;
+      swordButton.style.setProperty('--weapon-color', nextSword.color);
+      swordButton.disabled = player.cycles < nextSword.price;
+    } else {
+      const currentSword = CONFIG.swords[player.swordTier];
+      swordButton.textContent = `Max sword · ${currentSword.name} · ${currentSword.damage} damage`;
+      swordButton.style.setProperty('--weapon-color', currentSword.color);
+      swordButton.disabled = true;
+    }
   }
+
+  swordButton.addEventListener('click', () => {
+    const nextSword = CONFIG.swords[player.swordTier + 1];
+    if (!nextSword || player.cycles < nextSword.price) return;
+    player.cycles -= nextSword.price;
+    player.swordTier++;
+    player.swordDamage = nextSword.damage;
+    player.swordColor = nextSword.color;
+    shopStatusEl.textContent = `${nextSword.name} equipped!`;
+    refreshShop();
+  });
 
   function setShopOpen(open) {
     shopOpen = open;
@@ -198,8 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
     hpEl.textContent = `${'♥'.repeat(player.hp)}${'♡'.repeat(player.maxHp - player.hp)}`;
     if (cyclesEl) cyclesEl.textContent = player.cycles;
-    if (shopOpen) refreshShop();
-
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);
     drawPlayer(ctx, player, mouse, canvas);

@@ -64,7 +64,7 @@ function applySlash(player, swingAngle) {
     const angle = Math.atan2(dy, dx);
     const difference = Math.atan2(Math.sin(angle - swingAngle), Math.cos(angle - swingAngle));
     if (distance <= 78 && distance >= 18 && Math.abs(difference) < 0.34) {
-      enemy.hp--;
+      enemy.hp -= player.swordDamage;
       player.attackHitEnemies.add(enemy.id);
       if (enemy.hp <= 0) {
         enemy.alive = false;

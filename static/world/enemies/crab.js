@@ -97,7 +97,7 @@ function applySlash(player, swingAngle) {
       continue;
     }
 
-    crab.hp--;
+    crab.hp -= player.swordDamage;
     if (crab.hp <= 0) {
       crab.alive = false;
       player.cycles += 3;

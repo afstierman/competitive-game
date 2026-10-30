@@ -13,6 +13,9 @@ export function createPlayer() {
     hp: CONFIG.maxHp,
     maxHp: CONFIG.maxHp,
     cycles: 0,
+    swordTier: 0,
+    swordDamage: CONFIG.swords[0].damage,
+    swordColor: CONFIG.swords[0].color,
     facingRight: true,
     cameraX: 0,
     cameraY: 0,
@@ -202,9 +205,9 @@ export function drawPlayer(ctx, player, mouse, canvas) {
 
   if (player.isAttacking) {
     const progress = 1 - player.slashTimer / 150;
-    ctx.strokeStyle = `rgba(125, 249, 255, ${0.9 * (1 - progress * 0.45)})`;
+    ctx.strokeStyle = player.swordColor;
     ctx.lineWidth = 5 - progress * 2;
-    ctx.shadowColor = '#67e8f9';
+    ctx.shadowColor = player.swordColor;
     ctx.shadowBlur = 18;
     ctx.beginPath();
     ctx.arc(0, 0, 57, -0.7, 0.7);
@@ -227,9 +230,9 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.fillStyle = `rgba(74, 222, 128, ${pulse})`;
   ctx.fillRect(17, -2, 2, 4);
 
-  ctx.fillStyle = '#0284c7';
+  ctx.fillStyle = '#0f172a';
   ctx.fillRect(20, -4, 30, 8);
-  ctx.fillStyle = '#38bdf8';
+  ctx.fillStyle = player.swordColor;
   ctx.fillRect(21, -3, 28, 6);
   ctx.fillStyle = '#f0fdf4';
   ctx.fillRect(23, -1, 24, 2);

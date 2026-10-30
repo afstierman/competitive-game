@@ -3,6 +3,13 @@ export const CONFIG = {
   playerSpeed: 210,
   playerRadius: 12,
   maxHp: 3,
+  swords: [
+    { name: 'Original Sword', price: 0, damage: 1, color: '#9ca3af' },
+    { name: 'Mossy Sword', price: 25, damage: 2, color: '#4ade80' },
+    { name: 'Aqua Sword', price: 100, damage: 3, color: '#38bdf8' },
+    { name: 'Blackhole Sword', price: 400, damage: 5, color: '#c084fc' },
+    { name: 'Infernal Sword', price: 1000, damage: 10, color: '#ef4444' }
+  ],
 
   world: {
     hubSafeZoneTiles: 8,

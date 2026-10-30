@@ -111,7 +111,7 @@ function applySlash(player, swingAngle) {
     const distance = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
     if (distance <= 88 && distance >= 18 && Math.abs(angleDifference(angle, swingAngle)) < 0.34) {
-      octopus.hp--;
+      octopus.hp -= player.swordDamage;
       player.attackHitEnemies.add(octopus.id);
       if (octopus.hp <= 0) {
         octopus.alive = false;

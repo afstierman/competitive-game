@@ -119,7 +119,7 @@ function applySlash(player, swingAngle) {
       if (Math.abs(angleDifference(angle, swingAngle)) >= 0.34 + slack) continue;
     }
 
-    skeleton.hp--;
+    skeleton.hp -= player.swordDamage;
     skeleton.hitFlash = 0.12;
     player.attackHitEnemies.add(skeleton.id);
     if (skeleton.hp <= 0) {
