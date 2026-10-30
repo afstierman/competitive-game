@@ -25,7 +25,8 @@ export function createPlayer() {
     slashTimer: 0,
     slashCooldown: 0,
     attackId: 0,
-    attackHitEnemies: new Set()
+    attackHitEnemies: new Set(),
+    isGrabbedBy: null
   };
 }
 
@@ -48,6 +49,11 @@ export function updatePlayer(player, keys, dt, canvas, time, onDeath, mouse) {
   if (keys['d'] || keys['arrowright']) dx += 1;
 
   player.isMoving = (dx !== 0 || dy !== 0);
+  if (player.isGrabbedBy) {
+    dx = 0;
+    dy = 0;
+    player.isMoving = false;
+  }
 
   const hazard = checkHazards(player.x, player.y, time);
 
@@ -75,8 +81,8 @@ export function updatePlayer(player, keys, dt, canvas, time, onDeath, mouse) {
 
   // Calculate intended movement distance plus gravitational black hole pull force
   const moveDist = effectiveSpeed * dt;
-  let targetX = player.x + dx * moveDist + hazard.pullVelocity.x * dt;
-  let targetY = player.y + dy * moveDist + hazard.pullVelocity.y * dt;
+  let targetX = player.x + dx * moveDist + (player.isGrabbedBy ? 0 : hazard.pullVelocity.x * dt);
+  let targetY = player.y + dy * moveDist + (player.isGrabbedBy ? 0 : hazard.pullVelocity.y * dt);
 
   // Axis-separated collision checks
   if (!checkCollision(targetX, player.y + PLAYER_FEET_OFFSET, PLAYER_FEET_RADIUS)) {

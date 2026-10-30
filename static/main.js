@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!shopOpen) {
       updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver, mouse);
-      updateEnemies(player, dt, timestamp, triggerGameOver);
+      updateEnemies(player, dt, timestamp, canvas, triggerGameOver);
     }
     if (!isRunning) return;
 
