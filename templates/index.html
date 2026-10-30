@@ -12,7 +12,6 @@
   <div class="game-shell">
     <header class="top-bar">
       <h1>RETRO<span>SURVIVE</span></h1>
-      <button id="almanac-toggle" class="almanac-toggle" aria-label="Open creature almanac" aria-controls="almanac-panel" aria-expanded="false" title="Creature almanac">📖</button>
       <div class="stats">
         <span>POS: <strong id="ui-pos">0, 0</strong></span>
         <span>HP: <strong id="ui-hp">3</strong></span>
@@ -21,6 +20,7 @@
 
     <div class="viewport">
       <canvas id="screen" width="960" height="540"></canvas>
+      <button id="almanac-toggle" class="almanac-toggle" aria-label="Open creature almanac" aria-controls="almanac-panel" aria-expanded="false" title="Creature almanac">📖</button>
 
       <div id="shop-panel" class="shop-panel hidden">
         <button id="shop-close" class="shop-close" aria-label="Close shop">×</button>
@@ -38,7 +38,6 @@
           <p class="almanac-intro">Field notes for the creatures found beyond the hub.</p>
           <div class="creature-list">
             <article class="creature-entry">
-              <div class="creature-icon" aria-hidden="true">🪲</div>
               <div>
                 <h3>Computer Bug</h3>
                 <p class="creature-location">Mossy Overgrowth</p>
@@ -47,7 +46,6 @@
               </div>
             </article>
             <article class="creature-entry">
-              <div class="creature-icon" aria-hidden="true">🐙</div>
               <div>
                 <h3>Pool Octopus</h3>
                 <p class="creature-location">Sunken Abyss · Deep water</p>
@@ -56,7 +54,6 @@
               </div>
             </article>
             <article class="creature-entry">
-              <div class="creature-icon" aria-hidden="true">🦀</div>
               <div>
                 <h3>Red Crab</h3>
                 <p class="creature-location">Sunken Abyss</p>

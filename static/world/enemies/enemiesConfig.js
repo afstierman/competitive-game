@@ -3,8 +3,8 @@ export const ENEMIES_CONFIG = {
     health: 2,
     damage: 1,
     spawnRate: {
-      initialDelay: 1.1,
-      minInterval: 2.5,
+      initialDelay: 1,
+      minInterval: 2,
       maxInterval: 3,
       maxAlive: 10
     },
@@ -36,6 +36,48 @@ export const ENEMIES_CONFIG = {
       water: 84,
       lunge: 240,
       turnRate: 2.4
+    }
+  },
+  computerVirus: {
+    health: 10,
+    damage: 4,
+    spawnRate: {
+      initialDelay: 1,
+      minInterval: 2,
+      maxInterval: 3,
+      maxAlive: 4
+    },
+    movementSpeed: 130,
+    teleport: {
+      triggerRange: 220,
+      minCooldown: 2,
+      maxCooldown: 3.5,
+      vanishTime: 0.4,
+      appearTime: 0.3,
+      landingDistance: 75
+    }
+  },
+  skeleton: {
+    health: 6,
+    damage: 3,
+    spawnRate: {
+      initialDelay: 3,
+      minInterval: 4,
+      maxInterval: 6.5,
+      maxAlive: 3
+    },
+    movementSpeed: 140,
+    attack: {
+      triggerRange: 120,
+      range: 58,
+      arc: 0.9,
+      windupTime: 0.55,
+      comboWindupTime: 0.28,
+      swingTime: 0.16,
+      recoverTime: 0.7,
+      swings: 2,
+      lungeSpeed: 560,
+      knockback: 30
     }
   }
 };

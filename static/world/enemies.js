@@ -1,11 +1,15 @@
 import { damageComputerBugs, resetComputerBugs, updateComputerBugs, drawComputerBugs } from './enemies/computerBug.js';
 import { damageOctopuses, resetOctopuses, updateOctopuses, drawOctopuses } from './enemies/octopus.js';
 import { damageCrabs, resetCrabs, updateCrabs, drawCrabs } from './enemies/crab.js';
+import { damageComputerViruses, resetComputerViruses, updateComputerViruses, drawComputerViruses } from './enemies/computerVirus.js';
+import { damageSkeletons, resetSkeletons, updateSkeletons, drawSkeletons } from './enemies/skeleton.js';
 
 export function resetEnemies() {
   resetComputerBugs();
   resetOctopuses();
   resetCrabs();
+  resetComputerViruses();
+  resetSkeletons();
 }
 
 export function updateEnemies(player, dt, time, canvas, onDeath) {
@@ -19,15 +23,21 @@ export function updateEnemies(player, dt, time, canvas, onDeath) {
     damageComputerBugs(player, swingAngle);
     damageOctopuses(player, swingAngle);
     damageCrabs(player, swingAngle);
+    damageComputerViruses(player, swingAngle);
+    damageSkeletons(player, swingAngle);
   }
 
   if (!updateComputerBugs(player, dt, onDeath)) return;
   if (!updateOctopuses(player, dt, canvas, onDeath)) return;
-  updateCrabs(player, dt, onDeath);
+  if (!updateCrabs(player, dt, onDeath)) return;
+  if (!updateComputerViruses(player, dt, onDeath)) return;
+  updateSkeletons(player, dt, canvas, onDeath);
 }
 
 export function drawEnemies(ctx, player, canvas, time) {
   drawComputerBugs(ctx, player, canvas, time);
   drawOctopuses(ctx, player, canvas, time);
   drawCrabs(ctx, player, canvas, time);
+  drawComputerViruses(ctx, player, canvas, time);
+  drawSkeletons(ctx, player, canvas, time);
 }

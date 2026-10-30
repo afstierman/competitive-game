@@ -41,6 +41,10 @@
   }
 
   .almanac-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 13;
     min-width: 42px;
     padding: 6px 10px;
     border: 1px solid #475569;
@@ -196,22 +200,10 @@
   }
 
   .creature-entry {
-    display: grid;
-    grid-template-columns: 54px 1fr;
-    gap: 12px;
+    display: block;
     padding: 13px;
     border: 1px solid #374151;
     background: rgba(31, 41, 55, 0.78);
-  }
-
-  .creature-icon {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border: 1px solid #4b5563;
-    background: #030712;
-    font-size: 28px;
   }
 
   .creature-entry h3 {
