@@ -1,5 +1,5 @@
 import { CONFIG } from './config.js';
-import { checkCollision, checkCrystalCollection, checkHazards } from './world.js';
+import { checkCollision, checkCrystalCollection, checkHazards } from './world/world.js';
 
 export function createPlayer() {
   return {

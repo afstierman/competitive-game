@@ -1,5 +1,5 @@
 import { createPlayer, updatePlayer, drawPlayer } from './player.js';
-import { drawWorld, getBiomeAtDistance } from './world.js';
+import { drawWorld, getBiomeAtDistance } from './world/world.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('screen');
