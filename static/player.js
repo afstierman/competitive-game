@@ -1,5 +1,5 @@
 import { CONFIG } from './config.js';
-import { checkCollision, checkCrystalCollection } from './world.js';
+import { checkCollision, checkCrystalCollection, checkHazards } from './world.js';
 
 export function createPlayer() {
   return {
@@ -7,16 +7,17 @@ export function createPlayer() {
     y: 0,
     speed: CONFIG.playerSpeed,
     hp: CONFIG.maxHp,
-    cycles: 0, // Track currency/cycles from crystals
+    cycles: 0,
     facingRight: true,
     cameraX: 0,
     cameraY: 0,
     walkTimer: 0,
-    isMoving: false
+    isMoving: false,
+    damageCooldown: 0
   };
 }
 
-export function updatePlayer(player, keys, dt, canvas) {
+export function updatePlayer(player, keys, dt, canvas, time, onDeath) {
   let dx = 0, dy = 0;
   if (keys['w'] || keys['arrowup']) dy -= 1;
   if (keys['s'] || keys['arrowdown']) dy += 1;
@@ -24,6 +25,20 @@ export function updatePlayer(player, keys, dt, canvas) {
   if (keys['d'] || keys['arrowright']) dx += 1;
 
   player.isMoving = (dx !== 0 || dy !== 0);
+
+  const hazard = checkHazards(player.x, player.y, time);
+
+  player.damageCooldown = Math.max(0, player.damageCooldown - dt);
+  if (hazard.takeDamage && player.damageCooldown === 0) {
+    player.hp--;
+    player.damageCooldown = 1.0;
+    if (player.hp <= 0 && typeof onDeath === 'function') {
+      onDeath('Incinerated by infernal magma!');
+      return;
+    }
+  }
+
+  const effectiveSpeed = player.speed * hazard.speedMultiplier;
 
   if (player.isMoving) {
     player.walkTimer += dt * 10;
@@ -35,23 +50,19 @@ export function updatePlayer(player, keys, dt, canvas) {
     player.walkTimer += dt * 3;
   }
 
-  const moveDist = player.speed * dt;
+  // Calculate intended movement distance plus gravitational black hole pull force
+  const moveDist = effectiveSpeed * dt;
+  let targetX = player.x + dx * moveDist + hazard.pullVelocity.x * dt;
+  let targetY = player.y + dy * moveDist + hazard.pullVelocity.y * dt;
 
-  if (dx !== 0) {
-    const nextX = player.x + dx * moveDist;
-    if (!checkCollision(nextX, player.y, CONFIG.playerRadius)) {
-      player.x = nextX;
-    }
+  // Axis-separated collision checks
+  if (!checkCollision(targetX, player.y, CONFIG.playerRadius)) {
+    player.x = targetX;
+  }
+  if (!checkCollision(player.x, targetY, CONFIG.playerRadius)) {
+    player.y = targetY;
   }
 
-  if (dy !== 0) {
-    const nextY = player.y + dy * moveDist;
-    if (!checkCollision(player.x, nextY, CONFIG.playerRadius)) {
-      player.y = nextY;
-    }
-  }
-
-  // Check if player walks over any crystals to collect them
   const earnedCycles = checkCrystalCollection(player.x, player.y);
   if (earnedCycles > 0) {
     player.cycles += earnedCycles;
@@ -62,7 +73,6 @@ export function updatePlayer(player, keys, dt, canvas) {
 }
 
 export function drawPlayer(ctx, player, mouse, canvas) {
-  // (Player drawing code remains identical to previous version)
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
   const aimAngle = Math.atan2(mouse.y - centerY, mouse.x - centerX);
