@@ -150,5 +150,52 @@ export const ENEMIES_CONFIG = {
       spreadDistance: 28,
       kickSpeed: 220
     }
+  },
+  overgrowthBoss: {
+    name: 'Mossback Beetle',
+    title: 'Guardian of the Overgrowth',
+    health: 50,
+    movementSpeed: 120,
+    turnRate: 2.1,
+    shellMultiplier: 1,
+    stunMultiplier: 2,
+    contactDamage: 1,
+    deathTime: 2.6,
+    reward: 50,
+    attackDelay: { min: 1.3, max: 2.3 },
+    enrage: {
+      threshold: 0.5,
+      speedScale: 1.35,
+      cooldownScale: 0.7
+    },
+    charge: {
+      windup: 0.95,
+      lockTime: 0.3,
+      duration: 0.7,
+      speed: 560,
+      damage: 2,
+      recover: 1.4,
+      laneWidth: 50,
+      wallStunBonus: 0.8
+    },
+    spit: {
+      windup: 0.7,
+      recover: 0.7,
+      shots: 3,
+      shotsPhaseTwo: 5,
+      spread: 0.36,
+      speed: 270,
+      damage: 2,
+      radius: 10,
+      life: 2.4
+    },
+    leap: {
+      windup: 1,
+      airTime: .9,
+      radius: 115,
+      damage: 2,
+      recover: 1.1,
+      ringShots: 8
+    }
   }
 };

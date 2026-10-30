@@ -10,6 +10,9 @@ const CELL_SIZE = 260;
 const FIRST_SECTION_RADIUS = CONFIG.biomes[0].maxDistance;
 const enemiesByCell = new Map();
 let spawnTimer = BUG_CONFIG.spawnRate.initialDelay;
+let totalKills = 0;
+
+export function getComputerBugKills() { return totalKills; }
 
 function randomForCell(x, y, salt = 0) {
   const value = Math.sin(x * 127.1 + y * 311.7 + salt * 74.7) * 43758.5453;
@@ -61,7 +64,7 @@ function applySlash(player, swingAngle) {
       if (!enemy?.alive || player.attackHitEnemies.has(enemy.id) || !isSlingshotHit(player, enemy.x, enemy.y, enemy.isChasing, CONFIG.enemyChaseRange)) continue;
       enemy.hp -= player.slingshotDamage;
       player.attackHitEnemies.add(enemy.id);
-      if (enemy.hp <= 0) { enemy.alive = false; player.cycles++; }
+      if (enemy.hp <= 0) { enemy.alive = false; player.cycles++; totalKills++; }
       return;
     }
     return;
@@ -80,6 +83,7 @@ function applySlash(player, swingAngle) {
       if (enemy.hp <= 0) {
         enemy.alive = false;
         player.cycles++;
+        totalKills++;
       }
     }
   }
@@ -88,6 +92,7 @@ function applySlash(player, swingAngle) {
 export function resetComputerBugs() {
   enemiesByCell.clear();
   spawnTimer = BUG_CONFIG.spawnRate.initialDelay;
+  totalKills = 0;
 }
 
 export function damageComputerBugs(player, swingAngle) {

@@ -3,6 +3,7 @@ import { CONFIG } from './config.js';
 import { drawWorld, getBiomeAtPosition } from './world/world.js';
 import { isNearShop } from './world/shop.js';
 import { drawEnemies, resetEnemies, updateEnemies } from './world/enemies.js';
+import { getComputerBugKills } from './world/enemies/computerBug.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('screen');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const slingshotButton = document.getElementById('buy-slingshot');
   const armorButton = document.getElementById('buy-armor');
   const almanacPanel = document.getElementById('almanac-panel');
+  const bugKillProgressEl = document.getElementById('almanac-bug-kills');
   const almanacToggle = document.getElementById('almanac-toggle');
   const helpPanel = document.getElementById('help-panel');
   const helpToggle = document.getElementById('help-toggle');
@@ -330,6 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (weaponEl) weaponEl.textContent = player.activeWeapon === 'sword'
       ? CONFIG.swords[player.swordTier].name
       : CONFIG.slingshots[player.slingshotTier].name;
+    if (bugKillProgressEl) {
+      const kills = getComputerBugKills();
+      bugKillProgressEl.textContent = kills >= 5 ? `${kills} defeated · egg ready` : `${kills} / 5 defeated · egg progress`;
+    }
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);
     drawPlayer(ctx, player, mouse, canvas);

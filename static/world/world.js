@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import { getBiomeAtDistance, getTileEnvironment, collectedCrystals } from './generation.js';
 import { drawOrganicLiquid, drawUnclippedBlackHoles } from './hazards.js';
 import { collidesWithShop, drawShop, isInsideShopSector } from './shop.js';
+import { drawHubTrophy } from './hubTrophy.js';
 
 export { checkHazards } from './hazards.js';
 export { collectedCrystals };
@@ -113,6 +114,7 @@ export function drawWorld(ctx, canvas, player, time) {
   }
 
   drawShop(ctx, player);
+  drawHubTrophy(ctx, player);
   drawUnclippedBlackHoles(ctx, canvas, player, time);
 }
 
