@@ -1,6 +1,7 @@
-import { createPlayer, updatePlayer, drawPlayer } from './player.js';
+import { createPlayer, startPlayerAttack, updatePlayer, drawPlayer } from './player.js';
 import { drawWorld, getBiomeAtPosition } from './world/world.js';
 import { isNearShop } from './world/shop.js';
+import { drawEnemies, resetEnemies, updateEnemies } from './world/enemies.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('screen');
@@ -95,6 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
   });
 
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0 || !isRunning || shopOpen) return;
+    startPlayerAttack(player);
+  });
+
   function triggerGameOver(reason) {
     isRunning = false;
     overlay.classList.remove('hidden');
@@ -108,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startNewRun() {
     player = createPlayer();
+    resetEnemies();
     setShopOpen(false);
     overlay.classList.add('hidden');
     isRunning = true;
@@ -144,7 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
-    if (!shopOpen) updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver);
+    if (!shopOpen) {
+      updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver, mouse);
+      updateEnemies(player, dt, timestamp, triggerGameOver);
+    }
     if (!isRunning) return;
 
     const activeBiome = getBiomeAtPosition(player.x, player.y);
@@ -165,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (shopOpen) refreshShop();
 
     drawWorld(ctx, canvas, player, timestamp);
+    drawEnemies(ctx, player, canvas, timestamp);
     drawPlayer(ctx, player, mouse, canvas);
     if (isNearShop(player.x, player.y) && !shopOpen) {
       ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
@@ -180,5 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   drawWorld(ctx, canvas, player, performance.now());
+  drawEnemies(ctx, player, canvas, performance.now());
   drawPlayer(ctx, player, mouse, canvas);
 });

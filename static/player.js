@@ -18,11 +18,29 @@ export function createPlayer() {
     cameraY: 0,
     walkTimer: 0,
     isMoving: false,
-    damageCooldown: 0
+    damageCooldown: 0,
+    enemyDamageCooldown: 0,
+    aimAngle: 0,
+    isAttacking: false,
+    slashTimer: 0,
+    slashCooldown: 0,
+    attackId: 0,
+    attackHitEnemies: new Set()
   };
 }
 
-export function updatePlayer(player, keys, dt, canvas, time, onDeath) {
+export function updatePlayer(player, keys, dt, canvas, time, onDeath, mouse) {
+  player.slashCooldown = Math.max(0, player.slashCooldown - dt * 1000);
+  if (mouse) {
+    const targetAngle = Math.atan2(mouse.y - canvas.height / 2, mouse.x - canvas.width / 2);
+    const angleDelta = Math.atan2(Math.sin(targetAngle - player.aimAngle), Math.cos(targetAngle - player.aimAngle));
+    player.aimAngle += angleDelta * (1 - Math.exp(-dt * 20));
+  }
+  if (player.isAttacking) {
+    player.slashTimer = Math.max(0, player.slashTimer - dt * 1000);
+    if (player.slashTimer === 0) player.isAttacking = false;
+  }
+
   let dx = 0, dy = 0;
   if (keys['w'] || keys['arrowup']) dy -= 1;
   if (keys['s'] || keys['arrowdown']) dy += 1;
@@ -77,12 +95,22 @@ export function updatePlayer(player, keys, dt, canvas, time, onDeath) {
   player.cameraY = player.y - canvas.height / 2;
 }
 
+export function startPlayerAttack(player) {
+  if (player.slashCooldown > 0) return false;
+  player.isAttacking = true;
+  player.slashTimer = 150;
+  player.slashCooldown = 450;
+  player.attackId++;
+  player.attackHitEnemies.clear();
+  return true;
+}
+
 export function drawPlayer(ctx, player, mouse, canvas) {
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
-  const aimAngle = Math.atan2(mouse.y - centerY, mouse.x - centerX);
+  const aimAngle = player.aimAngle;
 
-  player.facingRight = mouse.x >= centerX;
+  player.facingRight = Math.cos(aimAngle) >= 0;
 
   const bounceY = player.isMoving ? Math.sin(player.walkTimer) * 2 : Math.sin(player.walkTimer) * 1;
   const legOffset = player.isMoving ? Math.sin(player.walkTimer) * 3 : 0;
@@ -158,7 +186,25 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   const shoulderX = player.facingRight ? centerX + 4 : centerX - 4;
   const shoulderY = centerY - 2 + bounceY;
   ctx.translate(shoulderX, shoulderY);
-  ctx.rotate(aimAngle);
+  let swordAngle = aimAngle;
+  if (player.isAttacking) {
+    const progress = 1 - player.slashTimer / 150;
+    const easedProgress = 1 - (1 - progress) * (1 - progress);
+    swordAngle += -Math.PI / 4 + easedProgress * (Math.PI / 2);
+  }
+  ctx.rotate(swordAngle);
+
+  if (player.isAttacking) {
+    const progress = 1 - player.slashTimer / 150;
+    ctx.strokeStyle = `rgba(125, 249, 255, ${0.9 * (1 - progress * 0.45)})`;
+    ctx.lineWidth = 5 - progress * 2;
+    ctx.shadowColor = '#67e8f9';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(0, 0, 57, -0.7, 0.7);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
 
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(-1, -4, 14, 8);
