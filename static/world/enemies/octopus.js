@@ -1,7 +1,9 @@
 import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
+import { ENEMIES_CONFIG } from './enemiesConfig.js';
 
+const OCTOPUS_CONFIG = ENEMIES_CONFIG.octopus;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
 const BLUE_SECTION_OUTER_RADIUS = CONFIG.biomes[1].maxDistance;
 const PULL_DURATION = 1.8;
@@ -40,8 +42,8 @@ function trySpawnNearPlayer(playerX, playerY) {
       kind: 'octopus',
       x: tileX * CONFIG.tileSize + CONFIG.tileSize / 2,
       y: tileY * CONFIG.tileSize + CONFIG.tileSize / 2,
-      hp: 3,
-      maxHp: 3,
+      hp: OCTOPUS_CONFIG.health,
+      maxHp: OCTOPUS_CONFIG.health,
       speed: 66,
       attackCooldown: 0.8,
       contactCooldown: 0,
@@ -55,7 +57,7 @@ function trySpawnNearPlayer(playerX, playerY) {
       pullTargetY: 0,
       tentacles: Array.from({ length: 8 }, (_, index) => ({
         angle: index * Math.PI / 4,
-        hp: 2,
+        hp: OCTOPUS_CONFIG.tentacleHealth,
         cut: false
       })),
       walkTimer: Math.random() * Math.PI * 2,
@@ -212,7 +214,7 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
 
     const contactDistance = Math.hypot(player.x - octopus.x, player.y - octopus.y);
     if (contactDistance < 28 && octopus.contactCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp--;
+      player.hp -= OCTOPUS_CONFIG.damage;
       player.enemyDamageCooldown = 0.9;
       octopus.contactCooldown = 1.1;
       octopus.contactAnimationTimer = 0.2;
@@ -251,7 +253,7 @@ export function drawOctopuses(ctx, player, canvas, time) {
     for (let arm = 0; arm < octopus.tentacles.length; arm++) {
       const tentacle = octopus.tentacles[arm];
       if (tentacle.cut || (tentacleIsActive && arm === octopus.attackTentacleIndex)) continue;
-      ctx.strokeStyle = tentacle.hp === 1 ? '#c4b5fd' : '#6d28d9';
+      ctx.strokeStyle = tentacle.hp < OCTOPUS_CONFIG.tentacleHealth ? '#c4b5fd' : '#6d28d9';
       const angle = tentacle.angle + Math.sin(time / 300 + arm) * 0.12;
       const length = 20 + Math.sin(time / 170 + arm * 1.8) * 4;
       ctx.beginPath();

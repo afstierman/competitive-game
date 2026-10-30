@@ -1,9 +1,11 @@
 import { damageComputerBugs, resetComputerBugs, updateComputerBugs, drawComputerBugs } from './enemies/computerBug.js';
 import { damageOctopuses, resetOctopuses, updateOctopuses, drawOctopuses } from './enemies/octopus.js';
+import { damageCrabs, resetCrabs, updateCrabs, drawCrabs } from './enemies/crab.js';
 
 export function resetEnemies() {
   resetComputerBugs();
   resetOctopuses();
+  resetCrabs();
 }
 
 export function updateEnemies(player, dt, time, canvas, onDeath) {
@@ -16,13 +18,16 @@ export function updateEnemies(player, dt, time, canvas, onDeath) {
     swingAngle = player.aimAngle - Math.PI / 4 + easedProgress * (Math.PI / 2);
     damageComputerBugs(player, swingAngle);
     damageOctopuses(player, swingAngle);
+    damageCrabs(player, swingAngle);
   }
 
   if (!updateComputerBugs(player, dt, onDeath)) return;
-  updateOctopuses(player, dt, canvas, onDeath);
+  if (!updateOctopuses(player, dt, canvas, onDeath)) return;
+  updateCrabs(player, dt, onDeath);
 }
 
 export function drawEnemies(ctx, player, canvas, time) {
   drawComputerBugs(ctx, player, canvas, time);
   drawOctopuses(ctx, player, canvas, time);
+  drawCrabs(ctx, player, canvas, time);
 }

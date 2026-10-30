@@ -2,6 +2,9 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getBiomeAtDistance, getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
+import { ENEMIES_CONFIG } from './enemiesConfig.js';
+
+const BUG_CONFIG = ENEMIES_CONFIG.computerBug;
 
 const CELL_SIZE = 260;
 const FIRST_SECTION_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -38,8 +41,8 @@ function getOrCreateEnemy(cellX, cellY) {
     id: key,
     x,
     y,
-    hp: 2,
-    maxHp: 2,
+    hp: BUG_CONFIG.health,
+    maxHp: BUG_CONFIG.health,
     speed: 52,
     attackCooldown: 0,
     attackAnimationTimer: 0,
@@ -125,7 +128,7 @@ export function updateComputerBugs(player, dt, onDeath) {
     }
 
     if (distance < 27 && enemy.attackCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp--;
+      player.hp -= BUG_CONFIG.damage;
       player.enemyDamageCooldown = 0.9;
       enemy.attackCooldown = 1.1;
       enemy.attackAnimationTimer = 0.24;
@@ -226,7 +229,7 @@ export function drawComputerBugs(ctx, player, canvas, time) {
       ctx.fillStyle = '#052e16';
       ctx.fillRect(-12, -26, 24, 3);
       ctx.fillStyle = '#4ade80';
-      ctx.fillRect(-12, -26, 12 * enemy.hp, 3);
+      ctx.fillRect(-12, -26, 24 * enemy.hp / enemy.maxHp, 3);
     }
     ctx.restore();
   }
