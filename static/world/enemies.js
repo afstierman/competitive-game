@@ -2,6 +2,7 @@ import { damageComputerBugs, resetComputerBugs, updateComputerBugs, drawComputer
 import { damageOctopuses, resetOctopuses, updateOctopuses, drawOctopuses } from './enemies/octopus.js';
 import { damageCrabs, resetCrabs, updateCrabs, drawCrabs } from './enemies/crab.js';
 import { damageComputerViruses, resetComputerViruses, updateComputerViruses, drawComputerViruses } from './enemies/computerVirus.js';
+import { damageMalwareWorms, resetMalwareWorms, updateMalwareWorms, drawMalwareWorms } from './enemies/malwareWorm.js';
 import { damageSkeletons, resetSkeletons, updateSkeletons, drawSkeletons } from './enemies/skeleton.js';
 import { damageMagmaSlugs, resetMagmaSlugs, updateMagmaSlugs, drawMagmaSlugs } from './enemies/magmaSlug.js';
 
@@ -10,6 +11,7 @@ export function resetEnemies() {
   resetOctopuses();
   resetCrabs();
   resetComputerViruses();
+  resetMalwareWorms();
   resetSkeletons();
   resetMagmaSlugs();
 }
@@ -26,6 +28,7 @@ export function updateEnemies(player, dt, time, canvas, onDeath) {
     damageOctopuses(player, swingAngle);
     damageCrabs(player, swingAngle);
     damageComputerViruses(player, swingAngle);
+    damageMalwareWorms(player, swingAngle);
     damageSkeletons(player, swingAngle);
     damageMagmaSlugs(player, swingAngle);
   }
@@ -34,6 +37,7 @@ export function updateEnemies(player, dt, time, canvas, onDeath) {
   if (!updateOctopuses(player, dt, canvas, onDeath)) return;
   if (!updateCrabs(player, dt, onDeath)) return;
   if (!updateComputerViruses(player, dt, onDeath)) return;
+  if (!updateMalwareWorms(player, dt, onDeath)) return;
   if (!updateSkeletons(player, dt, canvas, onDeath)) return;
   updateMagmaSlugs(player, dt, onDeath);
 }
@@ -43,6 +47,7 @@ export function drawEnemies(ctx, player, canvas, time) {
   drawOctopuses(ctx, player, canvas, time);
   drawCrabs(ctx, player, canvas, time);
   drawComputerViruses(ctx, player, canvas, time);
+  drawMalwareWorms(ctx, player, canvas, time);
   drawSkeletons(ctx, player, canvas, time);
   drawMagmaSlugs(ctx, player, canvas, time);
 }

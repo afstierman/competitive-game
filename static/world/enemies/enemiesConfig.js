@@ -109,5 +109,27 @@ export const ENEMIES_CONFIG = {
       puddleDuration: 4,
       puddleDamage: 5
     }
+  },
+  malwareWorm: {
+    health: 12,
+    damage: 6,
+    spawnRate: {
+      initialDelay: 1,
+      minInterval: 3,
+      maxInterval: 5,
+      maxAlive: 3
+    },
+    movementSpeed: 100,
+    cycles: [5, 3, 2],
+    split: {
+      generations: 2,
+      children: 2,
+      healthScale: 0.6,
+      damageScale: 0.75,
+      speedScale: 1.4,
+      sizeScale: 0.72,
+      spreadDistance: 28,
+      kickSpeed: 220
+    }
   }
 };
