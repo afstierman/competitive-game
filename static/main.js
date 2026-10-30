@@ -1,4 +1,5 @@
 import { createPlayer, startPlayerAttack, updatePlayer, drawPlayer } from './player.js';
+import { CONFIG } from './config.js';
 import { drawWorld, getBiomeAtPosition } from './world/world.js';
 import { isNearShop } from './world/shop.js';
 import { drawEnemies, resetEnemies, updateEnemies } from './world/enemies.js';
@@ -47,9 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let bannerTimer = 0;
 
   function refreshShop() {
+    const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
     shopCyclesEl.textContent = player.cycles;
-    healButton.disabled = player.cycles < 5 || player.hp >= player.maxHp;
-    healthButton.disabled = player.cycles < 10 || player.maxHp >= 10;
+    healButton.textContent = 'Heal 1 heart · 10 cycles';
+    healthButton.textContent = `+1 max health · ${healthUpgradeCost} cycles`;
+    healButton.disabled = player.cycles < 10 || player.hp >= player.maxHp;
+    healthButton.disabled = player.cycles < healthUpgradeCost || player.maxHp >= 10;
   }
 
   function setShopOpen(open) {
@@ -75,15 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('shop-close').addEventListener('click', () => setShopOpen(false));
   healButton.addEventListener('click', () => {
-    if (player.cycles < 5 || player.hp >= player.maxHp) return;
-    player.cycles -= 5;
-    player.hp = player.maxHp;
-    shopStatusEl.textContent = 'All patched up. Stay safe!';
+    if (player.cycles < 10 || player.hp >= player.maxHp) return;
+    player.cycles -= 10;
+    player.hp++;
+    shopStatusEl.textContent = 'One heart restored. Take care!';
     refreshShop();
   });
   healthButton.addEventListener('click', () => {
-    if (player.cycles < 10 || player.maxHp >= 10) return;
-    player.cycles -= 10;
+    const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
+    if (player.cycles < healthUpgradeCost || player.maxHp >= 10) return;
+    player.cycles -= healthUpgradeCost;
     player.maxHp++;
     player.hp++;
     shopStatusEl.textContent = 'A little sturdier! Max health increased.';
