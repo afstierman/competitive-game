@@ -1,5 +1,5 @@
 import { CONFIG } from '../config.js';
-import { getBiomeAtDistance, getTileEnvironment } from './generation.js';
+import { getTileEnvironment, isBlackHoleTile } from './generation.js';
 
 export function drawOrganicLiquid(ctx, sx, sy, env, time, worldX, worldY) {
   ctx.save();
@@ -51,50 +51,39 @@ export function drawUnclippedBlackHoles(ctx, canvas, player, time) {
     for (let ty = startY; ty < endY; ty++) {
       const worldX = tx * CONFIG.tileSize;
       const worldY = ty * CONFIG.tileSize;
-      const distFromCenter = Math.hypot(worldX, worldY);
-      const biome = getBiomeAtDistance(distFromCenter);
+      if (isBlackHoleTile(tx, ty)) {
+        const baseCx = worldX + CONFIG.tileSize / 2;
+        const baseCy = worldY + CONFIG.tileSize / 2;
 
-      if (biome.name === 'Void Nebula') {
-        const n = Math.sin(tx * 12.9898 + ty * 78.233) * 43758.5453;
-        const val = n - Math.floor(n);
-        if (val > 0.994) {
-          const distToInner = distFromCenter - 3200;
-          const distToOuter = 5000 - distFromCenter;
-          if (distToInner > 250 && distToOuter > 250) {
-            const baseCx = worldX + CONFIG.tileSize / 2;
-            const baseCy = worldY + CONFIG.tileSize / 2;
-            
-            const driftX = Math.sin(time / 2500 + tx) * 15;
-            const driftY = Math.cos(time / 2500 + ty) * 15;
-            const cx = baseCx + driftX - player.cameraX;
-            const cy = baseCy + driftY - player.cameraY;
+        const driftX = Math.sin(time / 2500 + tx) * 15;
+        const driftY = Math.cos(time / 2500 + ty) * 15;
+        const cx = baseCx + driftX - player.cameraX;
+        const cy = baseCy + driftY - player.cameraY;
 
-            const scaleFactor = 0.5 + 0.5 * Math.sin(time / 1500 + tx);
-            const currentRadius = 48 * scaleFactor;
+        const scaleFactor = 0.5 + 0.5 * Math.sin(time / 1500 + tx);
+        const currentRadius = 48 * scaleFactor;
 
-            ctx.save();
-            ctx.fillStyle = `rgba(192, 132, 252, ${0.12 + 0.18 * scaleFactor})`;
-            ctx.beginPath();
-            ctx.arc(cx, cy, currentRadius * 2.5, 0, Math.PI * 2);
-            ctx.fill();
+        ctx.save();
+        ctx.fillStyle = `rgba(192, 132, 252, ${0.12 + 0.18 * scaleFactor})`;
+        ctx.beginPath();
+        ctx.arc(cx, cy, currentRadius * 2.5, 0, Math.PI * 2);
+        ctx.fill();
 
-            ctx.fillStyle = '#1e1b4b';
-            ctx.beginPath();
-            ctx.arc(cx, cy, currentRadius + 12, 0, Math.PI * 2);
-            ctx.fill();
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath();
+        ctx.arc(cx, cy, currentRadius + 12, 0, Math.PI * 2);
+        ctx.fill();
 
-            ctx.fillStyle = '#581c87';
-            ctx.beginPath();
-            ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
-            ctx.fill();
+        ctx.fillStyle = '#581c87';
+        ctx.beginPath();
+        ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
+        ctx.fill();
 
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(cx, cy, currentRadius * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        }
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(cx, cy, currentRadius * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
     }
   }
@@ -122,28 +111,21 @@ export function checkHazards(playerX, playerY, time) {
     for (let dy = -3; dy <= 3; dy++) {
       const tx = tileX + dx;
       const ty = tileY + dy;
-      const worldX = tx * CONFIG.tileSize;
-      const worldY = ty * CONFIG.tileSize;
-      const distFromCenter = Math.hypot(worldX, worldY);
-      const biome = getBiomeAtDistance(distFromCenter);
+      if (isBlackHoleTile(tx, ty)) {
+        const worldX = tx * CONFIG.tileSize;
+        const worldY = ty * CONFIG.tileSize;
+        const hazardX = worldX + CONFIG.tileSize / 2 + Math.sin(time / 2500 + tx) * 15;
+        const hazardY = worldY + CONFIG.tileSize / 2 + Math.cos(time / 2500 + ty) * 15;
 
-      if (biome.name === 'Void Nebula') {
-        const n = Math.sin(tx * 12.9898 + ty * 78.233) * 43758.5453;
-        const val = n - Math.floor(n);
-        if (val > 0.994) {
-          const hazardX = worldX + CONFIG.tileSize / 2 + Math.sin(time / 2500 + tx) * 15;
-          const hazardY = worldY + CONFIG.tileSize / 2 + Math.cos(time / 2500 + ty) * 15;
-          
-          const dist = Math.hypot(hazardX - playerX, hazardY - playerY);
-          const scaleFactor = 0.5 + 0.5 * Math.sin(time / 1500 + tx);
-          const pullRadius = 180 * scaleFactor;
+        const dist = Math.hypot(hazardX - playerX, hazardY - playerY);
+        const scaleFactor = 0.5 + 0.5 * Math.sin(time / 1500 + tx);
+        const pullRadius = 180 * scaleFactor;
 
-          if (dist < pullRadius && dist > 10) {
-            const force = (1 - dist / pullRadius) * 220 * scaleFactor;
-            const angle = Math.atan2(hazardY - playerY, hazardX - playerX);
-            pullVelocity.x += Math.cos(angle) * force;
-            pullVelocity.y += Math.sin(angle) * force;
-          }
+        if (dist < pullRadius && dist > 10) {
+          const force = (1 - dist / pullRadius) * 220 * scaleFactor;
+          const angle = Math.atan2(hazardY - playerY, hazardX - playerX);
+          pullVelocity.x += Math.cos(angle) * force;
+          pullVelocity.y += Math.sin(angle) * force;
         }
       }
     }

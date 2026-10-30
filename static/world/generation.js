@@ -11,6 +11,18 @@ function pseudoRandom(x, y) {
   return n - Math.floor(n);
 }
 
+export function isBlackHoleTile(tx, ty) {
+  const worldX = tx * CONFIG.tileSize;
+  const worldY = ty * CONFIG.tileSize;
+  const distFromCenter = Math.hypot(worldX, worldY);
+  const biome = getBiomeAtDistance(distFromCenter);
+  if (biome.name !== 'Void Nebula') return false;
+
+  const distToInner = distFromCenter - 3200;
+  const distToOuter = 5000 - distFromCenter;
+  return pseudoRandom(tx, ty) > 0.994 && distToInner > 250 && distToOuter > 250;
+}
+
 export function getLiquidPoolData(worldX, worldY, biomeName) {
   const spacing = biomeName === 'Sunken Abyss' ? 500 : 600; 
   const baseRadius = biomeName === 'Sunken Abyss' ? 200 : 240;
@@ -102,12 +114,8 @@ export function getTileEnvironment(tx, ty) {
     };
   }
 
-  if (biome.name === 'Void Nebula' && val > 0.994) {
-    const distToInner = distFromCenter - 3200;
-    const distToOuter = 5000 - distFromCenter;
-    if (distToInner > 250 && distToOuter > 250) {
-      return { type: 'void_pit', radius: 48 };
-    }
+  if (isBlackHoleTile(tx, ty)) {
+    return { type: 'void_pit', radius: 48 };
   }
 
   if (val > 1 - CONFIG.world.rockDensity) {

@@ -2,6 +2,9 @@ import { CONFIG } from './config.js';
 import { checkCollision, checkCrystalCollection, checkHazards } from './world/world.js';
 import { getTileEnvironment } from './world/generation.js';
 
+const PLAYER_FEET_OFFSET = 17;
+const PLAYER_FEET_RADIUS = 5;
+
 export function createPlayer() {
   return {
     x: 0,
@@ -57,10 +60,10 @@ export function updatePlayer(player, keys, dt, canvas, time, onDeath) {
   let targetY = player.y + dy * moveDist + hazard.pullVelocity.y * dt;
 
   // Axis-separated collision checks
-  if (!checkCollision(targetX, player.y, CONFIG.playerRadius)) {
+  if (!checkCollision(targetX, player.y + PLAYER_FEET_OFFSET, PLAYER_FEET_RADIUS)) {
     player.x = targetX;
   }
-  if (!checkCollision(player.x, targetY, CONFIG.playerRadius)) {
+  if (!checkCollision(player.x, targetY + PLAYER_FEET_OFFSET, PLAYER_FEET_RADIUS)) {
     player.y = targetY;
   }
 
