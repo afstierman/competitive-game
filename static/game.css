@@ -80,6 +80,61 @@
   .screen-overlay.hidden {
     display: none !important;
   }
+
+  .shop-panel {
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    padding: 22px;
+    transform: translate(-50%, -50%);
+    border: 2px solid #a3e635;
+    background: rgba(17, 24, 39, 0.97);
+    box-shadow: 6px 6px 0 #000;
+    text-align: center;
+  }
+
+  .shop-panel.hidden {
+    display: none;
+  }
+
+  .shop-panel h2 {
+    margin: 0 0 8px;
+    color: #bef264;
+    font-size: 21px;
+  }
+
+  .shop-panel p {
+    color: #d1d5db;
+  }
+
+  .shop-panel .shop-currency strong {
+    color: #facc15;
+  }
+
+  .shop-panel > button:not(.shop-close) {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .shop-panel button:disabled {
+    background: #4b5563;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  .shop-panel .shop-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 2px 8px;
+    background: transparent;
+    color: #d1d5db;
+    box-shadow: none;
+    font-size: 22px;
+  }
   
   .screen-overlay h2 {
     color: var(--accent);

@@ -1,10 +1,22 @@
 import { CONFIG } from '../config.js';
 import { getBiomeAtDistance, getTileEnvironment, collectedCrystals } from './generation.js';
 import { drawOrganicLiquid, drawUnclippedBlackHoles } from './hazards.js';
+import { collidesWithShop, drawShop, isInsideShopSector } from './shop.js';
 
 export { checkHazards } from './hazards.js';
 export { collectedCrystals };
 export { getBiomeAtDistance } from './generation.js';
+
+export function getBiomeAtPosition(worldX, worldY) {
+  if (isInsideShopSector(worldX, worldY)) {
+    return {
+      name: '',
+      tiles: { primary: '#394047', alt: '#30373e' },
+      crystal: { color: '#cbd5e1', value: 0 }
+    };
+  }
+  return getBiomeAtDistance(Math.hypot(worldX, worldY));
+}
 
 function drawBiomeRock(ctx, cx, cy, radius, biome) {
   ctx.save();
@@ -76,8 +88,7 @@ export function drawWorld(ctx, canvas, player, time) {
 
       const worldX = tx * CONFIG.tileSize;
       const worldY = ty * CONFIG.tileSize;
-      const distFromCenter = Math.hypot(worldX, worldY);
-      const biome = getBiomeAtDistance(distFromCenter);
+      const biome = getBiomeAtPosition(worldX, worldY);
 
       const isAlt = Math.abs(tx + ty) % 2 === 0;
       ctx.fillStyle = isAlt ? biome.tiles.primary : biome.tiles.alt;
@@ -101,10 +112,13 @@ export function drawWorld(ctx, canvas, player, time) {
     }
   }
 
+  drawShop(ctx, player);
   drawUnclippedBlackHoles(ctx, canvas, player, time);
 }
 
 export function checkCollision(x, y, radius) {
+  if (collidesWithShop(x, y, radius)) return true;
+
   const tileX = Math.floor(x / CONFIG.tileSize);
   const tileY = Math.floor(y / CONFIG.tileSize);
 

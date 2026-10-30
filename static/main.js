@@ -1,5 +1,6 @@
 import { createPlayer, updatePlayer, drawPlayer } from './player.js';
-import { drawWorld, getBiomeAtDistance } from './world/world.js';
+import { drawWorld, getBiomeAtPosition } from './world/world.js';
+import { isNearShop } from './world/shop.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('screen');
@@ -8,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const launchBtn = document.getElementById('launch-btn');
   const posEl = document.getElementById('ui-pos');
   const hpEl = document.getElementById('ui-hp');
+  const shopPanel = document.getElementById('shop-panel');
+  const shopCyclesEl = document.getElementById('shop-cycles');
+  const shopStatusEl = document.getElementById('shop-status');
+  const healButton = document.getElementById('buy-heal');
+  const healthButton = document.getElementById('buy-health');
 
   let cyclesEl = document.getElementById('ui-cycles');
   let biomeEl = document.getElementById('ui-biome');
@@ -27,9 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
       biomeEl = document.getElementById('ui-biome');
     }
   }
+  if (biomeEl) biomeEl.textContent = '';
 
   let isRunning = false;
   let player = createPlayer();
+  let shopOpen = false;
   const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
   const keys = {};
 
@@ -37,8 +45,49 @@ document.addEventListener('DOMContentLoaded', () => {
   let bannerText = '';
   let bannerTimer = 0;
 
-  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+  function refreshShop() {
+    shopCyclesEl.textContent = player.cycles;
+    healButton.disabled = player.cycles < 5 || player.hp >= player.maxHp;
+    healthButton.disabled = player.cycles < 10 || player.maxHp >= 10;
+  }
+
+  function setShopOpen(open) {
+    shopOpen = open;
+    shopPanel.classList.toggle('hidden', !open);
+    if (open) {
+      shopStatusEl.textContent = 'Welcome, explorer!';
+      refreshShop();
+    }
+  }
+
+  window.addEventListener('keydown', e => {
+    const key = e.key.toLowerCase();
+    if (key === 'e' && !keys.e && isRunning && isNearShop(player.x, player.y)) {
+      setShopOpen(!shopOpen);
+      e.preventDefault();
+    } else if (key === 'escape' && shopOpen) {
+      setShopOpen(false);
+    }
+    keys[key] = true;
+  });
   window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  document.getElementById('shop-close').addEventListener('click', () => setShopOpen(false));
+  healButton.addEventListener('click', () => {
+    if (player.cycles < 5 || player.hp >= player.maxHp) return;
+    player.cycles -= 5;
+    player.hp = player.maxHp;
+    shopStatusEl.textContent = 'All patched up. Stay safe!';
+    refreshShop();
+  });
+  healthButton.addEventListener('click', () => {
+    if (player.cycles < 10 || player.maxHp >= 10) return;
+    player.cycles -= 10;
+    player.maxHp++;
+    player.hp++;
+    shopStatusEl.textContent = 'A little sturdier! Max health increased.';
+    refreshShop();
+  });
 
   canvas.addEventListener('mousemove', e => {
     const rect = canvas.getBoundingClientRect();
@@ -59,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startNewRun() {
     player = createPlayer();
+    setShopOpen(false);
     overlay.classList.add('hidden');
     isRunning = true;
     lastTime = performance.now();
@@ -74,17 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
     bannerTimer -= dt;
 
     ctx.save();
-    ctx.fillStyle = `rgba(3, 7, 18, ${Math.min(1, bannerTimer)})`;
-    ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+    ctx.fillStyle = 'rgba(3, 7, 18, 0.72)';
+    ctx.fillRect(0, 16, canvas.width, 60);
 
     ctx.strokeStyle = '#4ade80';
     ctx.lineWidth = 2;
-    ctx.strokeRect(0, canvas.height / 2 - 40, canvas.width, 80);
+    ctx.strokeRect(0, 16, canvas.width, 60);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`ENTERING SECTOR: ${bannerText.toUpperCase()}`, canvas.width / 2, canvas.height / 2 + 6);
+    ctx.fillText(`ENTERING SECTOR: ${bannerText.toUpperCase()}`, canvas.width / 2, 52);
     ctx.restore();
   }
 
@@ -94,28 +144,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
-    updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver);
+    if (!shopOpen) updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver);
     if (!isRunning) return;
 
-    const currentDist = Math.hypot(player.x, player.y);
-    const activeBiome = getBiomeAtDistance(currentDist);
+    const activeBiome = getBiomeAtPosition(player.x, player.y);
 
     if (activeBiome.name !== currentBiomeName) {
       currentBiomeName = activeBiome.name;
       bannerText = currentBiomeName;
-      bannerTimer = 3.0;
+      bannerTimer = currentBiomeName ? 3.0 : 0;
       if (biomeEl) {
         biomeEl.textContent = currentBiomeName;
-        biomeEl.style.color = activeBiome.crystal.color;
+        if (currentBiomeName) biomeEl.style.color = activeBiome.crystal.color;
       }
     }
 
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
-    hpEl.textContent = '♥'.repeat(player.hp);
+    hpEl.textContent = `${'♥'.repeat(player.hp)}${'♡'.repeat(player.maxHp - player.hp)}`;
     if (cyclesEl) cyclesEl.textContent = player.cycles;
+    if (shopOpen) refreshShop();
 
     drawWorld(ctx, canvas, player, timestamp);
     drawPlayer(ctx, player, mouse, canvas);
+    if (isNearShop(player.x, player.y) && !shopOpen) {
+      ctx.fillStyle = 'rgba(3, 7, 18, 0.85)';
+      ctx.fillRect(canvas.width / 2 - 98, canvas.height / 2 + 42, 196, 28);
+      ctx.fillStyle = '#fef3c7';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Press E to browse the shop', canvas.width / 2, canvas.height / 2 + 61);
+    }
     renderBiomeBanner(dt);
 
     requestAnimationFrame(loop);

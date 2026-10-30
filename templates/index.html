@@ -20,6 +20,15 @@
 
     <div class="viewport">
       <canvas id="screen" width="960" height="540"></canvas>
+
+      <div id="shop-panel" class="shop-panel hidden">
+        <button id="shop-close" class="shop-close" aria-label="Close shop">×</button>
+        <h2>Little Hub Shop</h2>
+        <p class="shop-currency">Cycles: <strong id="shop-cycles">0</strong></p>
+        <button id="buy-heal">Full heal · 5 cycles</button>
+        <button id="buy-health">+1 max health · 10 cycles</button>
+        <p id="shop-status" aria-live="polite">Welcome, explorer!</p>
+      </div>
       
       <div id="start-screen" class="screen-overlay">
         <h2>READY TO DEPLOY?</h2>

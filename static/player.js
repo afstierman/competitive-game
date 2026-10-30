@@ -11,6 +11,7 @@ export function createPlayer() {
     y: 0,
     speed: CONFIG.playerSpeed,
     hp: CONFIG.maxHp,
+    maxHp: CONFIG.maxHp,
     cycles: 0,
     facingRight: true,
     cameraX: 0,
