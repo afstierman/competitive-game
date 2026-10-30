@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creature Almanac</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='game.css') }}">
+  <style>
+    body {
+      align-items: flex-start;
+      padding: 30px 16px;
+      box-sizing: border-box;
+    }
+
+    .almanac-page {
+      width: min(760px, 100%);
+      padding: 28px;
+      border: 2px solid #a3e635;
+      background: var(--panel);
+      box-shadow: 6px 6px 0 #000;
+    }
+
+    .almanac-page header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .almanac-page h1 {
+      margin: 0;
+      color: #bef264;
+      font-size: 28px;
+    }
+
+    .back-link {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: var(--accent);
+      color: #030712;
+      font-weight: bold;
+      font-size: 14px;
+      text-decoration: none;
+      box-shadow: 3px 3px 0 #000;
+    }
+
+    .back-link:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .section-heading {
+      margin: 26px 0 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #374151;
+      color: #a3e635;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .almanac-page .creature-list {
+      margin-top: 10px;
+    }
+
+    .creature-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .creature-stats span {
+      padding: 2px 8px;
+      border: 1px solid #374151;
+      background: #111827;
+      color: #facc15;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <main class="almanac-page">
+    <header>
+      <div>
+        <h1>Creature Almanac</h1>
+        <p class="almanac-intro">Field notes for the creatures found beyond the hub.</p>
+      </div>
+      <a class="back-link" href="/">BACK TO GAME</a>
+    </header>
+
+    <h2 class="section-heading">Mossy Overgrowth</h2>
+    <div class="creature-list">
+      <article class="creature-entry">
+        <h3>Computer Bug</h3>
+        <p>A small pursuer with little armor. It closes in and attacks at close range.</p>
+        <div class="creature-stats"><span>HP 2</span><span>DMG 1</span></div>
+      </article>
+    </div>
+
+    <h2 class="section-heading">Sunken Abyss</h2>
+    <div class="creature-list">
+      <article class="creature-entry">
+        <h3>Pool Octopus</h3>
+        <p class="creature-location">Deep water</p>
+        <p>Its tentacle reaches toward you, then reels you in and holds you still. The tentacle cannot be cut; defeat the octopus to break free.</p>
+        <div class="creature-stats"><span>HP 3</span><span>DMG 2</span></div>
+      </article>
+      <article class="creature-entry">
+        <h3>Red Crab</h3>
+        <p class="creature-location">Water and land</p>
+        <p>Its shell protects the front. Circle around and strike from behind to get through its armor.</p>
+        <div class="creature-stats"><span>HP 4</span><span>DMG 2</span></div>
+      </article>
+    </div>
+
+    <h2 class="section-heading">Violet Circuit</h2>
+    <div class="creature-list">
+      <article class="creature-entry">
+        <h3>Computer Virus</h3>
+        <p>Fast and hard to pin down. It blinks to the opposite side of you, and a magenta marker shows where it will land. It cannot be hit while it is teleporting.</p>
+        <div class="creature-stats"><span>HP 10</span><span>DMG 4</span></div>
+      </article>
+    </div>
+
+    <h2 class="section-heading">Ember Wastes</h2>
+    <div class="creature-list">
+      <article class="creature-entry">
+        <h3>Skeleton</h3>
+        <p>A fast chaser that swings its sword in a two-hit combo and lunges forward with each swing. A red zone shows where it will strike. Sidestep once the aim locks, then hit it while it recovers. It avoids lava.</p>
+        <div class="creature-stats"><span>HP 20</span><span>DMG 8</span></div>
+      </article>
+      <article class="creature-entry">
+        <h3>Magma Slug</h3>
+        <p class="creature-location">Lava pools</p>
+        <p>Keeps its distance and spits lava globs that leave burning puddles. Rings on the ground show where each glob lands. Standing in a puddle hurts badly, so get out fast. It is quick on lava but slow on land, and its death leaves lava puddles behind.</p>
+        <div class="creature-stats"><span>HP 20</span><span>DMG 10</span><span>PUDDLE 5</span></div>
+      </article>
+    </div>
+  </main>
+</body>
+</html>
