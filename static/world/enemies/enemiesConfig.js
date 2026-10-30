@@ -58,8 +58,8 @@ export const ENEMIES_CONFIG = {
     }
   },
   skeleton: {
-    health: 6,
-    damage: 3,
+    health: 20,
+    damage: 8,
     spawnRate: {
       initialDelay: 3,
       minInterval: 4,
@@ -78,6 +78,36 @@ export const ENEMIES_CONFIG = {
       swings: 2,
       lungeSpeed: 560,
       knockback: 30
+    }
+  },
+  magmaSlug: {
+    health: 20,
+    damage: 10,
+    spawnRate: {
+      initialDelay: 3,
+      minInterval: 4,
+      maxInterval: 6,
+      maxAlive: 3
+    },
+    movementSpeed: {
+      lava: 95,
+      land: 48
+    },
+    spit: {
+      range: 300,
+      minRange: 110,
+      windupTime: 0.7,
+      recoverTime: 0.6,
+      minCooldown: 2.2,
+      maxCooldown: 3.4,
+      globs: 3,
+      spreadDistance: 80,
+      flightTime: 0.75,
+      globStagger: 0.14,
+      impactRadius: 30,
+      puddleRadius: 32,
+      puddleDuration: 4,
+      puddleDamage: 5
     }
   }
 };
