@@ -62,8 +62,8 @@ export const ENEMIES_CONFIG = {
     }
   },
   skeleton: {
-    health: 20,
-    damage: 8,
+    health: 25,
+    damage: 12,
     spawnRate: {
       initialDelay: 3,
       minInterval: 4,
@@ -85,8 +85,8 @@ export const ENEMIES_CONFIG = {
     }
   },
   magmaSlug: {
-    health: 20,
-    damage: 10,
+    health: 15,
+    damage: 8,
     spawnRate: {
       initialDelay: 3,
       minInterval: 4,
