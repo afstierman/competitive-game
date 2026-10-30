@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const CRAB_CONFIG = ENEMIES_CONFIG.crab;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -79,6 +79,19 @@ function moveCrab(crab, angle, speed, dt) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const crab of crabs.values()) {
+      if (!crab.alive || player.attackHitEnemies.has(crab.id) || !isSlingshotHit(player, crab.x, crab.y, crab.isChasing, CONFIG.enemyChaseRange)) continue;
+      player.attackHitEnemies.add(crab.id);
+      const hitFromAngle = Math.atan2(player.y - crab.y, player.x - crab.x);
+      if (Math.abs(angleDifference(hitFromAngle, crab.facing)) < ARMOR_ARC) { crab.blockFlash = 0.18; return; }
+      crab.hp -= player.slingshotDamage;
+      if (crab.hp <= 0) { crab.alive = false; player.cycles += 3; }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const crab of crabs.values()) {
     if (!crab.alive || player.attackHitEnemies.has(crab.id)) continue;
@@ -150,6 +163,7 @@ export function updateCrabs(player, dt, onDeath) {
     const distance = Math.hypot(dx, dy);
     const toPlayer = Math.atan2(dy, dx);
     const baseSpeed = crab.inWater ? WATER_SPEED : LAND_SPEED;
+    crab.isChasing = distance < CONFIG.enemyChaseRange || crab.state === 'windup' || crab.state === 'lunge';
 
     if (crab.state === 'move') {
       // Slow turning is what lets the player get around to the unarmored sides.
@@ -157,7 +171,7 @@ export function updateCrabs(player, dt, onDeath) {
       const maxTurn = TURN_RATE * dt;
       crab.facing += Math.max(-maxTurn, Math.min(maxTurn, turn));
 
-      if (distance < 330 && distance > 1) {
+      if (distance < CONFIG.enemyChaseRange && distance > 1) {
         crab.strafeTimer -= dt;
         if (crab.strafeTimer <= 0) {
           crab.strafeDir *= -1;

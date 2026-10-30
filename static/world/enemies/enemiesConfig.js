@@ -2,6 +2,21 @@ export function damageAfterArmor(player, damage) {
   return Math.max(1, damage - (player.armorReduction || 0));
 }
 
+export function isSlingshotHit(player, targetX, targetY, isChasing, chaseRange) {
+  if (!player.slingshotShotActive || player.attackHitEnemies.has('slingshot-shot')) return false;
+  if (!isChasing) return false;
+  const dx = targetX - player.x;
+  const dy = targetY - player.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance < 22 || distance > player.slingshotShotRange || distance >= chaseRange) return false;
+  const angle = Math.atan2(dy, dx);
+  const difference = Math.atan2(Math.sin(angle - player.slingshotShotAngle), Math.cos(angle - player.slingshotShotAngle));
+  if (Math.abs(difference) > 0.055) return false;
+  player.slingshotShotActive = false;
+  player.attackHitEnemies.add('slingshot-shot');
+  return true;
+}
+
 export const ENEMIES_CONFIG = {
   computerBug: {
     health: 2,

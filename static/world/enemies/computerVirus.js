@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const VIRUS_CONFIG = ENEMIES_CONFIG.computerVirus;
 const SPAWN = VIRUS_CONFIG.spawnRate;
@@ -95,6 +95,18 @@ function moveVirus(virus, angle, speed, dt) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const virus of viruses.values()) {
+      if (!virus.alive || virus.state !== 'chase' || player.attackHitEnemies.has(virus.id) || !isSlingshotHit(player, virus.x, virus.y, virus.isChasing, CONFIG.enemyChaseRange)) continue;
+      virus.hp -= player.slingshotDamage;
+      virus.hitFlash = 0.12;
+      player.attackHitEnemies.add(virus.id);
+      if (virus.hp <= 0) { virus.alive = false; player.cycles += 4; }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const virus of viruses.values()) {
     // Can't be hit while dematerialized
@@ -163,9 +175,10 @@ export function updateComputerViruses(player, dt, onDeath) {
     const dy = player.y - virus.y;
     const distance = Math.hypot(dx, dy);
     const toPlayer = Math.atan2(dy, dx);
+    virus.isChasing = virus.state === 'chase' && distance < CONFIG.enemyChaseRange;
 
     if (virus.state === 'chase') {
-      if (distance < 360 && distance > 20) {
+      if (distance < CONFIG.enemyChaseRange && distance > 20) {
         virus.walkTimer += dt * 16;
         // Slight zigzag so the approach is harder to line up
         const heading = distance > 90

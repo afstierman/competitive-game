@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const SLUG_CONFIG = ENEMIES_CONFIG.magmaSlug;
 const SPAWN = SLUG_CONFIG.spawnRate;
@@ -116,6 +116,25 @@ function addPuddle(x, y, radius, duration) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const slug of slugs.values()) {
+      if (!slug.alive || player.attackHitEnemies.has(slug.id) || !isSlingshotHit(player, slug.x, slug.y, slug.isChasing, CONFIG.enemyChaseRange)) continue;
+      slug.hp -= player.slingshotDamage;
+      slug.hitFlash = 0.12;
+      player.attackHitEnemies.add(slug.id);
+      if (slug.hp <= 0) {
+        slug.alive = false;
+        player.cycles += 6;
+        for (let i = 0; i < 4; i++) {
+          const angle = i * Math.PI / 2 + Math.PI / 4;
+          addPuddle(slug.x + Math.cos(angle) * 34, slug.y + Math.sin(angle) * 34, SPIT.puddleRadius * 0.8, SPIT.puddleDuration * 0.75);
+        }
+      }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const slug of slugs.values()) {
     if (!slug.alive || player.attackHitEnemies.has(slug.id)) continue;
@@ -211,10 +230,11 @@ export function updateMagmaSlugs(player, dt, onDeath) {
     const dy = player.y - slug.y;
     const distance = Math.hypot(dx, dy);
     const toPlayer = Math.atan2(dy, dx);
+    slug.isChasing = (slug.state === 'roam' && distance < CONFIG.enemyChaseRange) || slug.state === 'charge';
 
     if (slug.state === 'roam') {
       slug.facing = Math.cos(toPlayer) >= 0 ? 1 : -1;
-      if (distance < 420 && distance > 1) {
+      if (distance < CONFIG.enemyChaseRange && distance > 1) {
         const speed = slug.onLava ? SPEED.lava : SPEED.land;
         slug.strafeTimer -= dt;
         if (slug.strafeTimer <= 0) {

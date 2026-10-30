@@ -4,6 +4,10 @@ import { getTileEnvironment } from './world/generation.js';
 
 const PLAYER_FEET_OFFSET = 17;
 const PLAYER_FEET_RADIUS = 5;
+const SLINGSHOT_MIN_CHARGE_MS = 250;
+const SLINGSHOT_MAX_CHARGE_MS = 1000;
+const SLINGSHOT_MIN_RANGE = 90;
+const SLINGSHOT_MAX_RANGE = 380;
 
 export function createPlayer() {
   return {
@@ -16,6 +20,10 @@ export function createPlayer() {
     swordTier: 0,
     swordDamage: CONFIG.swords[0].damage,
     swordColor: CONFIG.swords[0].color,
+    slingshotTier: -1,
+    slingshotDamage: 0,
+    slingshotColor: '#9ca3af',
+    activeWeapon: 'sword',
     armorTier: 0,
     armorReduction: 0,
     armorColor: null,
@@ -30,6 +38,13 @@ export function createPlayer() {
     isAttacking: false,
     slashTimer: 0,
     slashCooldown: 0,
+    slingshotCooldown: 0,
+    isChargingSlingshot: false,
+    slingshotChargeMs: 0,
+    slingshotShotTimer: 0,
+    slingshotShotActive: false,
+    slingshotShotAngle: 0,
+    slingshotShotRange: 90,
     attackId: 0,
     attackHitEnemies: new Set(),
     isGrabbedBy: null
@@ -38,6 +53,14 @@ export function createPlayer() {
 
 export function updatePlayer(player, keys, dt, canvas, time, onDeath, mouse) {
   player.slashCooldown = Math.max(0, player.slashCooldown - dt * 1000);
+  player.slingshotCooldown = Math.max(0, player.slingshotCooldown - dt * 1000);
+  if (player.isChargingSlingshot) {
+    player.slingshotChargeMs = Math.min(SLINGSHOT_MAX_CHARGE_MS, player.slingshotChargeMs + dt * 1000);
+  }
+  if (player.slingshotShotTimer > 0) {
+    player.slingshotShotTimer = Math.max(0, player.slingshotShotTimer - dt * 1000);
+    if (player.slingshotShotTimer === 0) player.slingshotShotActive = false;
+  }
   if (mouse) {
     const targetAngle = Math.atan2(mouse.y - canvas.height / 2, mouse.x - canvas.width / 2);
     const angleDelta = Math.atan2(Math.sin(targetAngle - player.aimAngle), Math.cos(targetAngle - player.aimAngle));
@@ -108,10 +131,40 @@ export function updatePlayer(player, keys, dt, canvas, time, onDeath, mouse) {
 }
 
 export function startPlayerAttack(player) {
+  if (player.activeWeapon === 'slingshot') {
+    if (player.slingshotTier < 0 || player.slingshotCooldown > 0 || player.isChargingSlingshot) return false;
+    player.isChargingSlingshot = true;
+    player.slingshotChargeMs = 0;
+    return true;
+  }
   if (player.slashCooldown > 0) return false;
   player.isAttacking = true;
   player.slashTimer = 150;
   player.slashCooldown = 450;
+  player.attackId++;
+  player.attackHitEnemies.clear();
+  return true;
+}
+
+export function releasePlayerAttack(player) {
+  if (!player.isChargingSlingshot) return false;
+  player.isChargingSlingshot = false;
+  if (player.activeWeapon !== 'slingshot') {
+    player.slingshotChargeMs = 0;
+    return false;
+  }
+  if (player.slingshotChargeMs < SLINGSHOT_MIN_CHARGE_MS) {
+    player.slingshotChargeMs = 0;
+    return false;
+  }
+  const charge = (player.slingshotChargeMs - SLINGSHOT_MIN_CHARGE_MS)
+    / (SLINGSHOT_MAX_CHARGE_MS - SLINGSHOT_MIN_CHARGE_MS);
+  player.slingshotShotRange = SLINGSHOT_MIN_RANGE + charge * (SLINGSHOT_MAX_RANGE - SLINGSHOT_MIN_RANGE);
+  player.slingshotChargeMs = 0;
+  player.slingshotCooldown = 1100;
+  player.slingshotShotTimer = 260;
+  player.slingshotShotAngle = player.aimAngle;
+  player.slingshotShotActive = true;
   player.attackId++;
   player.attackHitEnemies.clear();
   return true;
@@ -202,6 +255,7 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.restore();
 
   // Arm & Sword
+  if (player.activeWeapon === 'sword') {
   ctx.save();
   const shoulderX = player.facingRight ? centerX + 4 : centerX - 4;
   const shoulderY = centerY - 2 + bounceY;
@@ -249,6 +303,41 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.fillRect(23, -1, 24, 2);
 
   ctx.restore();
+  } else {
+    ctx.save();
+    ctx.translate(centerX, centerY + bounceY);
+    ctx.rotate(aimAngle);
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(13, -5);
+    ctx.lineTo(23, 0);
+    ctx.lineTo(13, 5);
+    ctx.stroke();
+    if (player.isChargingSlingshot) {
+      const tension = player.slingshotChargeMs / 1000;
+      ctx.strokeStyle = '#e7e5e4';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(13, -5);
+      ctx.lineTo(23 - tension * 7, 0);
+      ctx.lineTo(13, 5);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#d6d3d1';
+    ctx.beginPath();
+    ctx.arc(18, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    if (player.slingshotShotTimer > 0) {
+      const progress = 1 - player.slingshotShotTimer / 260;
+      const distance = player.slingshotShotRange * progress;
+      ctx.fillStyle = player.slingshotColor;
+      ctx.beginPath();
+      ctx.arc(Math.cos(player.slingshotShotAngle - aimAngle) * distance, Math.sin(player.slingshotShotAngle - aimAngle) * distance, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
 
   // Draw liquid effects last so they sit visibly in front of the player.
   if (inWater || inLava) {

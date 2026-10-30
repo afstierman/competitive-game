@@ -1,4 +1,4 @@
-import { createPlayer, startPlayerAttack, updatePlayer, drawPlayer } from './player.js';
+import { createPlayer, startPlayerAttack, releasePlayerAttack, updatePlayer, drawPlayer } from './player.js';
 import { CONFIG } from './config.js';
 import { drawWorld, getBiomeAtPosition } from './world/world.js';
 import { isNearShop } from './world/shop.js';
@@ -11,12 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const launchBtn = document.getElementById('launch-btn');
   const posEl = document.getElementById('ui-pos');
   const hpEl = document.getElementById('ui-hp');
+  const weaponEl = document.getElementById('ui-weapon');
   const shopPanel = document.getElementById('shop-panel');
   const shopCyclesEl = document.getElementById('shop-cycles');
   const shopStatusEl = document.getElementById('shop-status');
   const healButton = document.getElementById('buy-heal');
   const healthButton = document.getElementById('buy-health');
   const swordButton = document.getElementById('buy-sword');
+  const slingshotButton = document.getElementById('buy-slingshot');
   const armorButton = document.getElementById('buy-armor');
   const almanacPanel = document.getElementById('almanac-panel');
   const almanacToggle = document.getElementById('almanac-toggle');
@@ -97,6 +99,17 @@ document.addEventListener('DOMContentLoaded', () => {
       armorButton.style.color = currentArmor.color;
       armorButton.disabled = true;
     }
+    const nextSlingshot = CONFIG.slingshots[player.slingshotTier + 1];
+    if (nextSlingshot) {
+      slingshotButton.textContent = `${nextSlingshot.name} · ${nextSlingshot.damage} damage · ${nextSlingshot.price} cycles`;
+      slingshotButton.style.setProperty('--weapon-color', nextSlingshot.color);
+      slingshotButton.disabled = !canAfford(nextSlingshot.price);
+    } else {
+      const currentSlingshot = CONFIG.slingshots[player.slingshotTier];
+      slingshotButton.textContent = `Max slingshot · ${currentSlingshot.name} · ${currentSlingshot.damage} damage`;
+      slingshotButton.style.setProperty('--weapon-color', currentSlingshot.color);
+      slingshotButton.disabled = true;
+    }
   }
 
   swordButton.addEventListener('click', () => {
@@ -107,6 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
     player.swordDamage = nextSword.damage;
     player.swordColor = nextSword.color;
     shopStatusEl.textContent = `${nextSword.name} equipped!`;
+    refreshShop();
+  });
+
+  slingshotButton.addEventListener('click', () => {
+    const nextSlingshot = CONFIG.slingshots[player.slingshotTier + 1];
+    if (!nextSlingshot || !canAfford(nextSlingshot.price)) return;
+    spendCycles(nextSlingshot.price);
+    player.slingshotTier++;
+    player.slingshotDamage = nextSlingshot.damage;
+    player.slingshotColor = nextSlingshot.color;
+    shopStatusEl.textContent = `${nextSlingshot.name} unlocked! Press Q to equip it.`;
     refreshShop();
   });
 
@@ -142,6 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
     helpToggle.setAttribute('aria-expanded', String(open));
   }
 
+  function toggleWeapon() {
+    if (!isRunning || player.slingshotTier < 0 || shopOpen || almanacOpen || helpOpen) return false;
+    player.activeWeapon = player.activeWeapon === 'sword' ? 'slingshot' : 'sword';
+    return true;
+  }
+
   window.addEventListener('keydown', e => {
     const key = e.key.toLowerCase();
     if (key === 'e' && !keys.e && isRunning && !almanacOpen && !helpOpen && isNearShop(player.x, player.y)) {
@@ -153,10 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
       setAlmanacOpen(false);
     } else if (key === 'escape' && helpOpen) {
       setHelpOpen(false);
+    } else if (key === 'q' && !keys.q && isRunning && player.slingshotTier >= 0 && !shopOpen && !almanacOpen && !helpOpen) {
+      toggleWeapon();
     }
     keys[key] = true;
   });
   window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+  canvas.addEventListener('wheel', e => {
+    if (e.deltaY !== 0 && toggleWeapon()) e.preventDefault();
+  }, { passive: false });
 
   document.getElementById('shop-close').addEventListener('click', () => setShopOpen(false));
   almanacToggle.addEventListener('click', () => {
@@ -214,6 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('mousedown', e => {
     if (e.button !== 0 || !isRunning || shopOpen || almanacOpen || helpOpen) return;
     startPlayerAttack(player);
+  });
+  window.addEventListener('mouseup', e => {
+    if (e.button === 0) releasePlayerAttack(player);
   });
 
   function triggerGameOver(reason) {
@@ -289,6 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
     hpEl.textContent = `${'♥'.repeat(player.hp)}${'♡'.repeat(player.maxHp - player.hp)}`;
     if (cyclesEl) cyclesEl.textContent = testerMode ? '∞' : player.cycles;
+    if (weaponEl) weaponEl.textContent = player.activeWeapon === 'sword'
+      ? CONFIG.swords[player.swordTier].name
+      : CONFIG.slingshots[player.slingshotTier].name;
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);
     drawPlayer(ctx, player, mouse, canvas);

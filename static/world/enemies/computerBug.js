@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getBiomeAtDistance, getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const BUG_CONFIG = ENEMIES_CONFIG.computerBug;
 
@@ -55,6 +55,17 @@ function getOrCreateEnemy(cellX, cellY) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const enemy of enemiesByCell.values()) {
+      if (!enemy?.alive || player.attackHitEnemies.has(enemy.id) || !isSlingshotHit(player, enemy.x, enemy.y, enemy.isChasing, CONFIG.enemyChaseRange)) continue;
+      enemy.hp -= player.slingshotDamage;
+      player.attackHitEnemies.add(enemy.id);
+      if (enemy.hp <= 0) { enemy.alive = false; player.cycles++; }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const enemy of enemiesByCell.values()) {
     if (!enemy?.alive || player.attackHitEnemies.has(enemy.id)) continue;
@@ -119,7 +130,8 @@ export function updateComputerBugs(player, dt, onDeath) {
     const dx = player.x - enemy.x;
     const dy = player.y - enemy.y;
     const distance = Math.hypot(dx, dy);
-    if (distance < 280 && distance > 1) {
+    enemy.isChasing = distance < CONFIG.enemyChaseRange;
+    if (distance < CONFIG.enemyChaseRange && distance > 1) {
       enemy.walkTimer += dt * 8;
       const step = enemy.speed * dt;
       const nextX = enemy.x + dx / distance * step;

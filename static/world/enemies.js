@@ -32,6 +32,15 @@ export function updateEnemies(player, dt, time, canvas, onDeath) {
     damageSkeletons(player, swingAngle);
     damageMagmaSlugs(player, swingAngle);
   }
+  if (player.activeWeapon === 'slingshot' && player.slingshotShotActive) {
+    damageComputerBugs(player, null);
+    damageOctopuses(player, null);
+    damageCrabs(player, null);
+    damageComputerViruses(player, null);
+    damageMalwareWorms(player, null);
+    damageSkeletons(player, null);
+    damageMagmaSlugs(player, null);
+  }
 
   if (!updateComputerBugs(player, dt, onDeath)) return;
   if (!updateOctopuses(player, dt, canvas, onDeath)) return;

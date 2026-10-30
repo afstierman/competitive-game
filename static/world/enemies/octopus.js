@@ -1,7 +1,7 @@
 import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const OCTOPUS_CONFIG = ENEMIES_CONFIG.octopus;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -69,6 +69,21 @@ function trySpawnNearPlayer(playerX, playerY) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const octopus of octopusesByTile.values()) {
+      if (!octopus.alive || player.attackHitEnemies.has(octopus.id) || !isSlingshotHit(player, octopus.x, octopus.y, octopus.isChasing, CONFIG.enemyChaseRange)) continue;
+      octopus.hp -= player.slingshotDamage;
+      player.attackHitEnemies.add(octopus.id);
+      if (octopus.hp <= 0) {
+        octopus.alive = false;
+        if (player.isGrabbedBy === octopus.id) player.isGrabbedBy = null;
+        player.cycles += 5;
+      }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const octopus of octopusesByTile.values()) {
     if (!octopus.alive || player.attackHitEnemies.has(octopus.id)) continue;
@@ -158,7 +173,8 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
     const dx = player.x - octopus.x;
     const dy = player.y - octopus.y;
     const distance = Math.hypot(dx, dy);
-    if (distance < 290 && distance > 1 && octopus.attackAnimationTimer === 0 && octopus.pullTimer === 0 && !octopus.isGrabbing) {
+    octopus.isChasing = distance < CONFIG.enemyChaseRange || octopus.attackAnimationTimer > 0 || octopus.pullTimer > 0 || octopus.isGrabbing;
+    if (distance < CONFIG.enemyChaseRange && distance > 1 && octopus.attackAnimationTimer === 0 && octopus.pullTimer === 0 && !octopus.isGrabbing) {
       octopus.walkTimer += dt * 8;
       const step = octopus.speed * dt;
       const nextX = octopus.x + dx / distance * step;

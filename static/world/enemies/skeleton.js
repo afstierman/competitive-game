@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
 const SKELETON_CONFIG = ENEMIES_CONFIG.skeleton;
 const SPAWN = SKELETON_CONFIG.spawnRate;
@@ -105,6 +105,18 @@ function startWindup(skeleton, toPlayer, time) {
 }
 
 function applySlash(player, swingAngle) {
+  if (player.activeWeapon === 'slingshot') {
+    if (!player.slingshotShotActive) return;
+    for (const skeleton of skeletons.values()) {
+      if (!skeleton.alive || player.attackHitEnemies.has(skeleton.id) || !isSlingshotHit(player, skeleton.x, skeleton.y, skeleton.isChasing, CONFIG.enemyChaseRange)) continue;
+      skeleton.hp -= player.slingshotDamage;
+      skeleton.hitFlash = 0.12;
+      player.attackHitEnemies.add(skeleton.id);
+      if (skeleton.hp <= 0) { skeleton.alive = false; player.cycles += 8; }
+      return;
+    }
+    return;
+  }
   if (swingAngle === null) return;
   for (const skeleton of skeletons.values()) {
     if (!skeleton.alive || player.attackHitEnemies.has(skeleton.id)) continue;
@@ -167,11 +179,12 @@ export function updateSkeletons(player, dt, canvas, onDeath) {
     const dy = player.y - skeleton.y;
     const distance = Math.hypot(dx, dy);
     const toPlayer = Math.atan2(dy, dx);
+    skeleton.isChasing = distance < CONFIG.enemyChaseRange && skeleton.state !== 'recover';
 
     if (skeleton.state === 'chase') {
       skeleton.facing = Math.cos(toPlayer) >= 0 ? 1 : -1;
       skeleton.sweepAngle = skeleton.facing > 0 ? 1.2 : Math.PI - 1.2;
-      if (distance < 380 && distance > 40) {
+      if (distance < CONFIG.enemyChaseRange && distance > 40) {
         skeleton.walkTimer += dt * 9;
         moveSkeleton(skeleton, toPlayer, SKELETON_CONFIG.movementSpeed, dt);
       }
