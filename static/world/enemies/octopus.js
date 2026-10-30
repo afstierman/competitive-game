@@ -8,7 +8,7 @@ const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
 const BLUE_SECTION_OUTER_RADIUS = CONFIG.biomes[1].maxDistance;
 const PULL_DURATION = 1.8;
 const octopusesByTile = new Map();
-let spawnTimer = 2.4;
+let spawnTimer = OCTOPUS_CONFIG.spawnRate.initialDelay;
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -44,7 +44,7 @@ function trySpawnNearPlayer(playerX, playerY) {
       y: tileY * CONFIG.tileSize + CONFIG.tileSize / 2,
       hp: OCTOPUS_CONFIG.health,
       maxHp: OCTOPUS_CONFIG.health,
-      speed: 66,
+      speed: OCTOPUS_CONFIG.movementSpeed,
       attackCooldown: 0.8,
       contactCooldown: 0,
       contactAnimationTimer: 0,
@@ -124,7 +124,7 @@ function applySlash(player, swingAngle) {
 
 export function resetOctopuses() {
   octopusesByTile.clear();
-  spawnTimer = 2.4;
+  spawnTimer = OCTOPUS_CONFIG.spawnRate.initialDelay;
 }
 
 export function damageOctopuses(player, swingAngle) {
@@ -141,11 +141,12 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
       for (const octopus of octopusesByTile.values()) {
         if (octopus.alive) livingCount++;
       }
-      if (livingCount < 3) trySpawnNearPlayer(player.x, player.y);
-      spawnTimer = 3.4 + Math.random() * 2.2;
+      if (livingCount < OCTOPUS_CONFIG.spawnRate.maxAlive) trySpawnNearPlayer(player.x, player.y);
+      spawnTimer = OCTOPUS_CONFIG.spawnRate.minInterval
+        + Math.random() * (OCTOPUS_CONFIG.spawnRate.maxInterval - OCTOPUS_CONFIG.spawnRate.minInterval);
     }
   } else {
-    spawnTimer = Math.min(spawnTimer, 2.4);
+    spawnTimer = Math.min(spawnTimer, OCTOPUS_CONFIG.spawnRate.initialDelay);
   }
 
   for (const octopus of octopusesByTile.values()) {

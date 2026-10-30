@@ -12,6 +12,7 @@
   <div class="game-shell">
     <header class="top-bar">
       <h1>RETRO<span>SURVIVE</span></h1>
+      <button id="almanac-toggle" class="almanac-toggle" aria-label="Open creature almanac" aria-controls="almanac-panel" aria-expanded="false" title="Creature almanac">📖</button>
       <div class="stats">
         <span>POS: <strong id="ui-pos">0, 0</strong></span>
         <span>HP: <strong id="ui-hp">3</strong></span>
@@ -29,6 +30,44 @@
         <button id="buy-health">+1 max health · 10 cycles</button>
         <p id="shop-status" aria-live="polite">Welcome, explorer!</p>
       </div>
+
+      <section id="almanac-panel" class="almanac-panel hidden" role="dialog" aria-modal="true" aria-labelledby="almanac-title">
+        <div class="almanac-book">
+          <button id="almanac-close" class="almanac-close" aria-label="Close creature almanac">×</button>
+          <h2 id="almanac-title">Creature Almanac</h2>
+          <p class="almanac-intro">Field notes for the creatures found beyond the hub.</p>
+          <div class="creature-list">
+            <article class="creature-entry">
+              <div class="creature-icon" aria-hidden="true">🪲</div>
+              <div>
+                <h3>Computer Bug</h3>
+                <p class="creature-location">Mossy Overgrowth</p>
+                <p>A small pursuer with little armor. It closes in and attacks at close range.</p>
+                <p class="creature-tip">Two health · One damage</p>
+              </div>
+            </article>
+            <article class="creature-entry">
+              <div class="creature-icon" aria-hidden="true">🐙</div>
+              <div>
+                <h3>Pool Octopus</h3>
+                <p class="creature-location">Sunken Abyss · Deep water</p>
+                <p>Its tentacle reaches toward you, then reels you in and holds you still. The tentacle cannot be cut; defeat the octopus to break free.</p>
+                <p class="creature-tip">Three health · Two damage on contact</p>
+              </div>
+            </article>
+            <article class="creature-entry">
+              <div class="creature-icon" aria-hidden="true">🦀</div>
+              <div>
+                <h3>Red Crab</h3>
+                <p class="creature-location">Sunken Abyss</p>
+                <p>Its shell protects the front. Circle around and strike from behind to get through its armor.</p>
+                <p class="creature-tip">Four health · Two damage</p>
+              </div>
+            </article>
+          </div>
+          <p class="almanac-hint">Open or close with the book icon · Esc closes</p>
+        </div>
+      </section>
       
       <div id="start-screen" class="screen-overlay">
         <h2>READY TO DEPLOY?</h2>

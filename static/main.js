@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const shopStatusEl = document.getElementById('shop-status');
   const healButton = document.getElementById('buy-heal');
   const healthButton = document.getElementById('buy-health');
+  const almanacPanel = document.getElementById('almanac-panel');
+  const almanacToggle = document.getElementById('almanac-toggle');
 
   let cyclesEl = document.getElementById('ui-cycles');
   let biomeEl = document.getElementById('ui-biome');
@@ -40,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isRunning = false;
   let player = createPlayer();
   let shopOpen = false;
+  let almanacOpen = false;
   const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
   const keys = {};
 
@@ -65,19 +68,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function setAlmanacOpen(open) {
+    almanacOpen = open;
+    almanacPanel.classList.toggle('hidden', !open);
+    almanacToggle.setAttribute('aria-expanded', String(open));
+  }
+
   window.addEventListener('keydown', e => {
     const key = e.key.toLowerCase();
-    if (key === 'e' && !keys.e && isRunning && isNearShop(player.x, player.y)) {
+    if (key === 'e' && !keys.e && isRunning && !almanacOpen && isNearShop(player.x, player.y)) {
       setShopOpen(!shopOpen);
       e.preventDefault();
     } else if (key === 'escape' && shopOpen) {
       setShopOpen(false);
+    } else if (key === 'escape' && almanacOpen) {
+      setAlmanacOpen(false);
     }
     keys[key] = true;
   });
   window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
   document.getElementById('shop-close').addEventListener('click', () => setShopOpen(false));
+  almanacToggle.addEventListener('click', () => {
+    if (almanacOpen) {
+      setAlmanacOpen(false);
+    } else {
+      setShopOpen(false);
+      setAlmanacOpen(true);
+    }
+  });
+  document.getElementById('almanac-close').addEventListener('click', () => setAlmanacOpen(false));
   healButton.addEventListener('click', () => {
     if (player.cycles < 10 || player.hp >= player.maxHp) return;
     player.cycles -= 10;
@@ -102,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   canvas.addEventListener('mousedown', e => {
-    if (e.button !== 0 || !isRunning || shopOpen) return;
+    if (e.button !== 0 || !isRunning || shopOpen || almanacOpen) return;
     startPlayerAttack(player);
   });
 
@@ -121,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     player = createPlayer();
     resetEnemies();
     setShopOpen(false);
+    setAlmanacOpen(false);
     overlay.classList.add('hidden');
     isRunning = true;
     lastTime = performance.now();
@@ -156,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
-    if (!shopOpen) {
+    if (!shopOpen && !almanacOpen) {
       updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver, mouse);
       updateEnemies(player, dt, timestamp, canvas, triggerGameOver);
     }

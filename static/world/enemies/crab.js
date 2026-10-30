@@ -8,18 +8,16 @@ const CRAB_CONFIG = ENEMIES_CONFIG.crab;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
 const BLUE_SECTION_OUTER_RADIUS = CONFIG.biomes[1].maxDistance;
 
-const WATER_SPEED = 84;
-const LAND_SPEED = 58;
-const LUNGE_SPEED = 240;
-const TURN_RATE = 2.4;       // radians per second, slow enough to flank
+const WATER_SPEED = CRAB_CONFIG.movementSpeed.water;
+const LAND_SPEED = CRAB_CONFIG.movementSpeed.land;
+const LUNGE_SPEED = CRAB_CONFIG.movementSpeed.lunge;
+const TURN_RATE = CRAB_CONFIG.movementSpeed.turnRate; // radians per second, slow enough to flank
 const ARMOR_ARC = 0.95;      // front arc (each side of facing) that blocks hits
 const WINDUP_TIME = 0.45;
 const LUNGE_TIME = 0.22;
-const MAX_LIVING = 4;
-
 const crabs = new Map();
 let nextId = 0;
-let spawnTimer = 2.8;
+let spawnTimer = CRAB_CONFIG.spawnRate.initialDelay;
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -110,7 +108,7 @@ function applySlash(player, swingAngle) {
 export function resetCrabs() {
   crabs.clear();
   nextId = 0;
-  spawnTimer = 2.8;
+  spawnTimer = CRAB_CONFIG.spawnRate.initialDelay;
 }
 
 export function damageCrabs(player, swingAngle) {
@@ -127,11 +125,12 @@ export function updateCrabs(player, dt, onDeath) {
       for (const crab of crabs.values()) {
         if (crab.alive) livingCount++;
       }
-      if (livingCount < MAX_LIVING) trySpawnNearPlayer(player);
-      spawnTimer = 3 + Math.random() * 2;
+      if (livingCount < CRAB_CONFIG.spawnRate.maxAlive) trySpawnNearPlayer(player);
+      spawnTimer = CRAB_CONFIG.spawnRate.minInterval
+        + Math.random() * (CRAB_CONFIG.spawnRate.maxInterval - CRAB_CONFIG.spawnRate.minInterval);
     }
   } else {
-    spawnTimer = Math.min(spawnTimer, 2.8);
+    spawnTimer = Math.min(spawnTimer, CRAB_CONFIG.spawnRate.initialDelay);
   }
 
   for (const [id, crab] of crabs) {

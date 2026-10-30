@@ -9,7 +9,7 @@ const BUG_CONFIG = ENEMIES_CONFIG.computerBug;
 const CELL_SIZE = 260;
 const FIRST_SECTION_RADIUS = CONFIG.biomes[0].maxDistance;
 const enemiesByCell = new Map();
-let spawnTimer = 1.1;
+let spawnTimer = BUG_CONFIG.spawnRate.initialDelay;
 
 function randomForCell(x, y, salt = 0) {
   const value = Math.sin(x * 127.1 + y * 311.7 + salt * 74.7) * 43758.5453;
@@ -43,7 +43,7 @@ function getOrCreateEnemy(cellX, cellY) {
     y,
     hp: BUG_CONFIG.health,
     maxHp: BUG_CONFIG.health,
-    speed: 52,
+    speed: BUG_CONFIG.movementSpeed,
     attackCooldown: 0,
     attackAnimationTimer: 0,
     attackAngle: 0,
@@ -76,7 +76,7 @@ function applySlash(player, swingAngle) {
 
 export function resetComputerBugs() {
   enemiesByCell.clear();
-  spawnTimer = 1.1;
+  spawnTimer = BUG_CONFIG.spawnRate.initialDelay;
 }
 
 export function damageComputerBugs(player, swingAngle) {
@@ -93,7 +93,7 @@ export function updateComputerBugs(player, dt, onDeath) {
         if (enemy?.alive) livingCount++;
       }
 
-      if (livingCount < 6) {
+      if (livingCount < BUG_CONFIG.spawnRate.maxAlive) {
         const cellX = Math.floor(player.x / CELL_SIZE);
         const cellY = Math.floor(player.y / CELL_SIZE);
         for (let attempt = 0; attempt < 12; attempt++) {
@@ -104,10 +104,11 @@ export function updateComputerBugs(player, dt, onDeath) {
           if (getOrCreateEnemy(spawnCellX, spawnCellY)) break;
         }
       }
-      spawnTimer = 2.2 + Math.random() * 1.6;
+      spawnTimer = BUG_CONFIG.spawnRate.minInterval
+        + Math.random() * (BUG_CONFIG.spawnRate.maxInterval - BUG_CONFIG.spawnRate.minInterval);
     }
   } else {
-    spawnTimer = Math.min(spawnTimer, 1.1);
+    spawnTimer = Math.min(spawnTimer, BUG_CONFIG.spawnRate.initialDelay);
   }
 
   for (const enemy of enemiesByCell.values()) {
