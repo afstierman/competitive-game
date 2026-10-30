@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const SKELETON_CONFIG = ENEMIES_CONFIG.skeleton;
 const SPAWN = SKELETON_CONFIG.spawnRate;
@@ -203,7 +203,7 @@ export function updateSkeletons(player, dt, canvas, onDeath) {
         && Math.abs(angleDifference(toPlayer, skeleton.sweepAngle)) < 0.5
         && player.enemyDamageCooldown === 0) {
         skeleton.hasHit = true;
-        player.hp -= SKELETON_CONFIG.damage;
+        player.hp -= damageAfterArmor(player, SKELETON_CONFIG.damage);
         player.enemyDamageCooldown = 0.6;
         const pushX = player.x + Math.cos(skeleton.attackAngle) * ATTACK.knockback;
         const pushY = player.y + Math.sin(skeleton.attackAngle) * ATTACK.knockback;

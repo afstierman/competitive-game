@@ -1,7 +1,7 @@
 import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const OCTOPUS_CONFIG = ENEMIES_CONFIG.octopus;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -215,7 +215,7 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
 
     const contactDistance = Math.hypot(player.x - octopus.x, player.y - octopus.y);
     if (contactDistance < 28 && octopus.contactCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp -= OCTOPUS_CONFIG.damage;
+      player.hp -= damageAfterArmor(player, OCTOPUS_CONFIG.damage);
       player.enemyDamageCooldown = 0.9;
       octopus.contactCooldown = 1.1;
       octopus.contactAnimationTimer = 0.2;

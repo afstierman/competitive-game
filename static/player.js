@@ -16,6 +16,9 @@ export function createPlayer() {
     swordTier: 0,
     swordDamage: CONFIG.swords[0].damage,
     swordColor: CONFIG.swords[0].color,
+    armorTier: 0,
+    armorReduction: 0,
+    armorColor: null,
     facingRight: true,
     cameraX: 0,
     cameraY: 0,
@@ -154,6 +157,14 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.fillStyle = '#cbd5e1';
   ctx.fillRect(-10, -12, 3, 23);
   ctx.fillRect(7, -12, 3, 23);
+  if (player.armorColor) {
+    ctx.fillStyle = player.armorColor;
+    ctx.fillRect(-9, -8, 18, 13);
+    ctx.fillRect(-12, -10, 5, 5);
+    ctx.fillRect(7, -10, 5, 5);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.fillRect(-7, -6, 2, 9);
+  }
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(-4, -12, 8, 15);
 

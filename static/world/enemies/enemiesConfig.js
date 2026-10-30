@@ -1,3 +1,7 @@
+export function damageAfterArmor(player, damage) {
+  return Math.max(1, damage - (player.armorReduction || 0));
+}
+
 export const ENEMIES_CONFIG = {
   computerBug: {
     health: 2,

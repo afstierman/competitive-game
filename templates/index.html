@@ -20,7 +20,29 @@
 
     <div class="viewport">
       <canvas id="screen" width="960" height="540"></canvas>
+      <button id="help-toggle" class="help-toggle" aria-label="Open game guide" aria-controls="help-panel" aria-expanded="false" title="Game guide">i</button>
       <button id="almanac-toggle" class="almanac-toggle" aria-label="Open creature almanac" aria-controls="almanac-panel" aria-expanded="false" title="Creature almanac">📖</button>
+
+      <section id="help-panel" class="help-panel hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="help-card">
+          <button id="help-close" class="help-close" aria-label="Close game guide">×</button>
+          <h2 id="help-title">Field Guide</h2>
+          <h3>Controls</h3>
+          <ul>
+            <li><strong>WASD / Arrow keys</strong> — Move</li>
+            <li><strong>Mouse</strong> — Aim your sword</li>
+            <li><strong>Left click</strong> — Slash</li>
+            <li><strong>E</strong> — Open the shop when nearby</li>
+            <li><strong>Esc</strong> — Close a panel</li>
+          </ul>
+          <h3>Current goal</h3>
+          <p>Explore the sectors, collect crystals for cycles, and return to the central hub to buy stronger swords, armor, and healing. Learn each creature’s weakness in the almanac and survive as far as you can.</p>
+          <h3>Tester mode</h3>
+          <p>Enable unlimited cycles to try shop upgrades without collecting crystals.</p>
+          <button id="tester-toggle" class="tester-toggle" aria-pressed="false">Enable tester mode</button>
+          <p id="tester-status" class="tester-status" aria-live="polite">Tester mode is off.</p>
+        </div>
+      </section>
 
       <div id="shop-panel" class="shop-panel hidden">
         <button id="shop-close" class="shop-close" aria-label="Close shop">×</button>
@@ -28,6 +50,8 @@
         <p class="shop-currency">Cycles: <strong id="shop-cycles">0</strong></p>
         <h3 class="shop-section-title">Sword upgrade</h3>
         <button id="buy-sword" class="weapon-offer">Mossy Sword · 2 damage · 25 cycles</button>
+        <h3 class="shop-section-title">Armor upgrade</h3>
+        <button id="buy-armor" class="armor-offer">Mossy Armor · blocks 1 damage · 25 cycles</button>
         <h3 class="shop-section-title">Supplies</h3>
         <button id="buy-heal">Heal 1 heart · 10 cycles</button>
         <button id="buy-health">+1 max health · 10 cycles</button>

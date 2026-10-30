@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const CRAB_CONFIG = ENEMIES_CONFIG.crab;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -195,7 +195,7 @@ export function updateCrabs(player, dt, onDeath) {
     }
 
     if (distance < 28 && crab.contactCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp -= CRAB_CONFIG.damage;
+      player.hp -= damageAfterArmor(player, CRAB_CONFIG.damage);
       player.enemyDamageCooldown = 0.9;
       crab.contactCooldown = 1.0;
       crab.pinchTimer = 0.25;

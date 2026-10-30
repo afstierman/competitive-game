@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getBiomeAtDistance, getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const BUG_CONFIG = ENEMIES_CONFIG.computerBug;
 
@@ -129,7 +129,7 @@ export function updateComputerBugs(player, dt, onDeath) {
     }
 
     if (distance < 27 && enemy.attackCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp -= BUG_CONFIG.damage;
+      player.hp -= damageAfterArmor(player, BUG_CONFIG.damage);
       player.enemyDamageCooldown = 0.9;
       enemy.attackCooldown = 1.1;
       enemy.attackAnimationTimer = 0.24;

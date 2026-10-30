@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const SLUG_CONFIG = ENEMIES_CONFIG.magmaSlug;
 const SPAWN = SLUG_CONFIG.spawnRate;
@@ -38,7 +38,7 @@ function isLavaAt(x, y) {
 
 // Returns false if the player died
 function hurtPlayer(player, amount, message, onDeath) {
-  player.hp -= amount;
+  player.hp -= damageAfterArmor(player, amount);
   player.enemyDamageCooldown = 0.9;
   if (player.hp <= 0 && typeof onDeath === 'function') {
     onDeath(message);

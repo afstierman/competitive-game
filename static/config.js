@@ -10,6 +10,12 @@ export const CONFIG = {
     { name: 'Blackhole Sword', price: 400, damage: 5, color: '#c084fc' },
     { name: 'Infernal Sword', price: 1000, damage: 10, color: '#ef4444' }
   ],
+  armors: [
+    { name: 'Mossy Armor', price: 25, blockedDamage: 1, color: '#4ade80' },
+    { name: 'Aqua Armor', price: 100, blockedDamage: 2, color: '#38bdf8' },
+    { name: 'Blackhole Armor', price: 400, blockedDamage: 4, color: '#c084fc' },
+    { name: 'Infernal Armor', price: 1000, blockedDamage: 8, color: '#ef4444' }
+  ],
 
   world: {
     hubSafeZoneTiles: 8,

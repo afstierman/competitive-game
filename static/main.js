@@ -17,8 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const healButton = document.getElementById('buy-heal');
   const healthButton = document.getElementById('buy-health');
   const swordButton = document.getElementById('buy-sword');
+  const armorButton = document.getElementById('buy-armor');
   const almanacPanel = document.getElementById('almanac-panel');
   const almanacToggle = document.getElementById('almanac-toggle');
+  const helpPanel = document.getElementById('help-panel');
+  const helpToggle = document.getElementById('help-toggle');
+  const testerToggle = document.getElementById('tester-toggle');
+  const testerStatus = document.getElementById('tester-status');
 
   let cyclesEl = document.getElementById('ui-cycles');
   let biomeEl = document.getElementById('ui-biome');
@@ -44,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let player = createPlayer();
   let shopOpen = false;
   let almanacOpen = false;
+  let helpOpen = false;
+  let testerMode = false;
   const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
   const keys = {};
 
@@ -51,34 +58,66 @@ document.addEventListener('DOMContentLoaded', () => {
   let bannerText = '';
   let bannerTimer = 0;
 
+  function canAfford(cost) {
+    return testerMode || player.cycles >= cost;
+  }
+
+  function spendCycles(cost) {
+    if (!testerMode) player.cycles -= cost;
+  }
+
   function refreshShop() {
     const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
-    shopCyclesEl.textContent = player.cycles;
+    shopCyclesEl.textContent = testerMode ? '∞' : player.cycles;
     healButton.textContent = 'Heal 1 heart · 10 cycles';
     healthButton.textContent = `+1 max health · ${healthUpgradeCost} cycles`;
-    healButton.disabled = player.cycles < 10 || player.hp >= player.maxHp;
-    healthButton.disabled = player.cycles < healthUpgradeCost || player.maxHp >= 10;
+    healButton.disabled = !canAfford(10) || player.hp >= player.maxHp;
+    healthButton.disabled = !canAfford(healthUpgradeCost) || player.maxHp >= 10;
     const nextSword = CONFIG.swords[player.swordTier + 1];
     if (nextSword) {
       swordButton.textContent = `${nextSword.name} · ${nextSword.damage} damage · ${nextSword.price} cycles`;
       swordButton.style.setProperty('--weapon-color', nextSword.color);
-      swordButton.disabled = player.cycles < nextSword.price;
+      swordButton.disabled = !canAfford(nextSword.price);
     } else {
       const currentSword = CONFIG.swords[player.swordTier];
       swordButton.textContent = `Max sword · ${currentSword.name} · ${currentSword.damage} damage`;
       swordButton.style.setProperty('--weapon-color', currentSword.color);
       swordButton.disabled = true;
     }
+    const nextArmor = CONFIG.armors[player.armorTier];
+    if (nextArmor) {
+      armorButton.textContent = `${nextArmor.name} · blocks ${nextArmor.blockedDamage} damage · ${nextArmor.price} cycles`;
+      armorButton.style.setProperty('--armor-color', nextArmor.color);
+      armorButton.style.color = nextArmor.color;
+      armorButton.disabled = !canAfford(nextArmor.price);
+    } else {
+      const currentArmor = CONFIG.armors[player.armorTier - 1];
+      armorButton.textContent = `Max armor · ${currentArmor.name} · blocks ${currentArmor.blockedDamage} damage`;
+      armorButton.style.setProperty('--armor-color', currentArmor.color);
+      armorButton.style.color = currentArmor.color;
+      armorButton.disabled = true;
+    }
   }
 
   swordButton.addEventListener('click', () => {
     const nextSword = CONFIG.swords[player.swordTier + 1];
-    if (!nextSword || player.cycles < nextSword.price) return;
-    player.cycles -= nextSword.price;
+    if (!nextSword || !canAfford(nextSword.price)) return;
+    spendCycles(nextSword.price);
     player.swordTier++;
     player.swordDamage = nextSword.damage;
     player.swordColor = nextSword.color;
     shopStatusEl.textContent = `${nextSword.name} equipped!`;
+    refreshShop();
+  });
+
+  armorButton.addEventListener('click', () => {
+    const nextArmor = CONFIG.armors[player.armorTier];
+    if (!nextArmor || !canAfford(nextArmor.price)) return;
+    spendCycles(nextArmor.price);
+    player.armorTier++;
+    player.armorReduction = nextArmor.blockedDamage;
+    player.armorColor = nextArmor.color;
+    shopStatusEl.textContent = `${nextArmor.name} equipped!`;
     refreshShop();
   });
 
@@ -97,15 +136,23 @@ document.addEventListener('DOMContentLoaded', () => {
     almanacToggle.setAttribute('aria-expanded', String(open));
   }
 
+  function setHelpOpen(open) {
+    helpOpen = open;
+    helpPanel.classList.toggle('hidden', !open);
+    helpToggle.setAttribute('aria-expanded', String(open));
+  }
+
   window.addEventListener('keydown', e => {
     const key = e.key.toLowerCase();
-    if (key === 'e' && !keys.e && isRunning && !almanacOpen && isNearShop(player.x, player.y)) {
+    if (key === 'e' && !keys.e && isRunning && !almanacOpen && !helpOpen && isNearShop(player.x, player.y)) {
       setShopOpen(!shopOpen);
       e.preventDefault();
     } else if (key === 'escape' && shopOpen) {
       setShopOpen(false);
     } else if (key === 'escape' && almanacOpen) {
       setAlmanacOpen(false);
+    } else if (key === 'escape' && helpOpen) {
+      setHelpOpen(false);
     }
     keys[key] = true;
   });
@@ -117,21 +164,41 @@ document.addEventListener('DOMContentLoaded', () => {
       setAlmanacOpen(false);
     } else {
       setShopOpen(false);
+      setHelpOpen(false);
       setAlmanacOpen(true);
     }
   });
   document.getElementById('almanac-close').addEventListener('click', () => setAlmanacOpen(false));
+  helpToggle.addEventListener('click', () => {
+    if (helpOpen) {
+      setHelpOpen(false);
+    } else {
+      setShopOpen(false);
+      setAlmanacOpen(false);
+      setHelpOpen(true);
+    }
+  });
+  document.getElementById('help-close').addEventListener('click', () => setHelpOpen(false));
+  testerToggle.addEventListener('click', () => {
+    testerMode = !testerMode;
+    testerToggle.setAttribute('aria-pressed', String(testerMode));
+    testerToggle.textContent = testerMode ? 'Disable tester mode' : 'Enable tester mode';
+    testerStatus.textContent = testerMode
+      ? 'Tester mode is on. Shop purchases are free.'
+      : 'Tester mode is off.';
+    if (shopOpen) refreshShop();
+  });
   healButton.addEventListener('click', () => {
-    if (player.cycles < 10 || player.hp >= player.maxHp) return;
-    player.cycles -= 10;
+    if (!canAfford(10) || player.hp >= player.maxHp) return;
+    spendCycles(10);
     player.hp++;
     shopStatusEl.textContent = 'One heart restored. Take care!';
     refreshShop();
   });
   healthButton.addEventListener('click', () => {
     const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
-    if (player.cycles < healthUpgradeCost || player.maxHp >= 10) return;
-    player.cycles -= healthUpgradeCost;
+    if (!canAfford(healthUpgradeCost) || player.maxHp >= 10) return;
+    spendCycles(healthUpgradeCost);
     player.maxHp++;
     player.hp++;
     shopStatusEl.textContent = 'A little sturdier! Max health increased.';
@@ -145,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   canvas.addEventListener('mousedown', e => {
-    if (e.button !== 0 || !isRunning || shopOpen || almanacOpen) return;
+    if (e.button !== 0 || !isRunning || shopOpen || almanacOpen || helpOpen) return;
     startPlayerAttack(player);
   });
 
@@ -165,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resetEnemies();
     setShopOpen(false);
     setAlmanacOpen(false);
+    setHelpOpen(false);
     overlay.classList.add('hidden');
     isRunning = true;
     lastTime = performance.now();
@@ -200,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
-    if (!shopOpen && !almanacOpen) {
+    if (!shopOpen && !almanacOpen && !helpOpen) {
       updatePlayer(player, keys, dt, canvas, timestamp, triggerGameOver, mouse);
       updateEnemies(player, dt, timestamp, canvas, triggerGameOver);
     }
@@ -220,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
     hpEl.textContent = `${'♥'.repeat(player.hp)}${'♡'.repeat(player.maxHp - player.hp)}`;
-    if (cyclesEl) cyclesEl.textContent = player.cycles;
+    if (cyclesEl) cyclesEl.textContent = testerMode ? '∞' : player.cycles;
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);
     drawPlayer(ctx, player, mouse, canvas);

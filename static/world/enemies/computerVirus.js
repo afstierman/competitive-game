@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
 
 const VIRUS_CONFIG = ENEMIES_CONFIG.computerVirus;
 const SPAWN = VIRUS_CONFIG.spawnRate;
@@ -207,7 +207,7 @@ export function updateComputerViruses(player, dt, onDeath) {
     }
 
     if (virus.state === 'chase' && distance < 26 && virus.contactCooldown === 0 && player.enemyDamageCooldown === 0) {
-      player.hp -= VIRUS_CONFIG.damage;
+      player.hp -= damageAfterArmor(player, VIRUS_CONFIG.damage);
       player.enemyDamageCooldown = 0.9;
       virus.contactCooldown = 1.0;
       // Hit and run: teleport away shortly after biting
