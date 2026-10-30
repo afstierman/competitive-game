@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import { checkCollision, checkCrystalCollection, checkHazards } from './world/world.js';
+import { getTileEnvironment } from './world/generation.js';
 
 export function createPlayer() {
   return {
@@ -81,15 +82,15 @@ export function drawPlayer(ctx, player, mouse, canvas) {
 
   const bounceY = player.isMoving ? Math.sin(player.walkTimer) * 2 : Math.sin(player.walkTimer) * 1;
   const legOffset = player.isMoving ? Math.sin(player.walkTimer) * 3 : 0;
+  const playerTileX = Math.floor(player.x / CONFIG.tileSize);
+  const playerTileY = Math.floor(player.y / CONFIG.tileSize);
+  const currentEnvironment = getTileEnvironment(playerTileX, playerTileY);
+  const inWater = currentEnvironment?.type === 'water_puddle';
+  const inLava = currentEnvironment?.type === 'lava_pool';
+  const effectTime = performance.now();
 
   ctx.save();
   ctx.translate(centerX, centerY + bounceY);
-
-  // Shadow
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-  ctx.beginPath();
-  ctx.ellipse(0, 15, 12, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
 
   // Legs & Boots
   const leftLegX = -6;
@@ -178,4 +179,43 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.fillRect(23, -1, 24, 2);
 
   ctx.restore();
+
+  // Draw liquid effects last so they sit visibly in front of the player.
+  if (inWater || inLava) {
+    ctx.save();
+    ctx.translate(centerX, centerY + bounceY);
+
+    if (inWater) {
+      for (let i = 0; i < 6; i++) {
+        const phase = effectTime / 240 + i * (Math.PI * 2 / 6);
+        const rise = (Math.sin(phase) + 1) / 2;
+        const side = i % 2 === 0 ? -1 : 1;
+        const x = side * (7 + rise * 11) + Math.sin(phase * 1.7) * 2;
+        const y = 19 - rise * 25;
+        const radius = 1.5 + rise * 1.2;
+        ctx.fillStyle = `rgba(125, 211, 252, ${0.45 + rise * 0.5})`;
+        ctx.beginPath();
+        ctx.ellipse(x, y, radius * 0.75, radius * 1.35, side * -0.25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    if (inLava) {
+      for (let i = 0; i < 7; i++) {
+        const phase = effectTime / 110 + i * 1.7;
+        const x = Math.sin(phase) * 11 + ((i % 3) - 1) * 3;
+        const height = 7 + (Math.sin(phase * 1.4) + 1) * 4;
+        const y = 9 - (i % 3) * 9;
+        ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.85)' : 'rgba(253, 224, 71, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(x - 3, y + 5);
+        ctx.quadraticCurveTo(x - 4, y - height * 0.4, x + Math.sin(phase) * 2, y - height);
+        ctx.quadraticCurveTo(x + 4, y - height * 0.3, x + 3, y + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
 }
