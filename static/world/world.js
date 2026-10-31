@@ -142,6 +142,24 @@ export function checkCollision(x, y, radius) {
   return false;
 }
 
+export function findOpenPosition(x, y, radius) {
+  if (!checkCollision(x, y, radius)) return { x, y };
+
+  // Search outward in small steps so boss introductions never place the player
+  // inside a rock or shop boundary.
+  for (let distance = 16; distance <= CONFIG.tileSize * 3; distance += 16) {
+    const samples = Math.max(8, Math.ceil((Math.PI * 2 * distance) / 16));
+    for (let index = 0; index < samples; index++) {
+      const angle = (index / samples) * Math.PI * 2;
+      const candidateX = x + Math.cos(angle) * distance;
+      const candidateY = y + Math.sin(angle) * distance;
+      if (!checkCollision(candidateX, candidateY, radius)) return { x: candidateX, y: candidateY };
+    }
+  }
+
+  return { x, y };
+}
+
 export function checkCrystalCollection(playerX, playerY) {
   const tileX = Math.floor(playerX / CONFIG.tileSize);
   const tileY = Math.floor(playerY / CONFIG.tileSize);

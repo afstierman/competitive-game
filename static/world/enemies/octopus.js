@@ -231,6 +231,11 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
         player.y = pulledY;
         player.cameraX = player.x - canvas.width / 2;
         player.cameraY = player.y - canvas.height / 2;
+      } else if (step > 0) {
+        // A blocked pull can leave the grab flag set forever, disabling movement.
+        octopus.pullTimer = 0;
+        octopus.isGrabbing = false;
+        if (player.isGrabbedBy === octopus.id) player.isGrabbedBy = null;
       }
       octopus.pullTimer = Math.max(0, octopus.pullTimer - dt);
     }

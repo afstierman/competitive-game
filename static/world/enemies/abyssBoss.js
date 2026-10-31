@@ -1,4 +1,6 @@
+import { CONFIG } from '../../config.js';
 import { ENEMIES_CONFIG, damageAfterArmor } from './enemiesConfig.js';
+import { findOpenPosition } from '../world.js';
 
 const BOSS = ENEMIES_CONFIG.abyssBoss;
 const ENRAGE = {
@@ -146,8 +148,9 @@ export function startAbyssBoss(worldX, worldY, player, canvas) {
   addRing(startX, startY, 3, 'water', 0.9);
 
   if (player) {
-    player.x = centerX + 165;
-    player.y = centerY + 145;
+    const spawn = findOpenPosition(centerX + 165, centerY + 145, CONFIG.playerRadius);
+    player.x = spawn.x;
+    player.y = spawn.y;
     if (canvas) {
       player.cameraX = player.x - canvas.width / 2;
       player.cameraY = player.y - canvas.height / 2;
