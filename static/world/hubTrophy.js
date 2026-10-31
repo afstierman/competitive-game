@@ -1,20 +1,32 @@
 import { CONFIG } from '../config.js';
 
-const STORAGE_KEY = 'overgrowthBossDefeated';
 const TROPHY_LOCATION = { x: 128, y: -144 };
+const ABYSS_TROPHY_LOCATION = { x: 192, y: -144 };
 
-let trophyUnlocked = localStorage.getItem(STORAGE_KEY) === 'true';
+let trophyUnlocked = false;
+let abyssTrophyUnlocked = false;
+
+window.addEventListener('simulation-restarted', () => {
+  trophyUnlocked = false;
+  abyssTrophyUnlocked = false;
+});
 
 window.addEventListener('overgrowth-boss-defeated', () => {
   trophyUnlocked = true;
-  localStorage.setItem(STORAGE_KEY, 'true');
+});
+
+window.addEventListener('abyss-boss-defeated', () => {
+  abyssTrophyUnlocked = true;
 });
 
 export function drawHubTrophy(ctx, player) {
-  if (!trophyUnlocked) return;
+  if (trophyUnlocked) drawTrophy(ctx, player, TROPHY_LOCATION, '#22c55e', '#4ade80', '#86efac', '#16a34a');
+  if (abyssTrophyUnlocked) drawTrophy(ctx, player, ABYSS_TROPHY_LOCATION, '#0284c7', '#38bdf8', '#bae6fd', '#0369a1');
+}
 
-  const x = TROPHY_LOCATION.x - player.cameraX;
-  const y = TROPHY_LOCATION.y - player.cameraY;
+function drawTrophy(ctx, player, location, cupColor, handleColor, highlightColor, stemColor) {
+  const x = location.x - player.cameraX;
+  const y = location.y - player.cameraY;
   const size = CONFIG.tileSize;
 
   ctx.save();
@@ -31,14 +43,14 @@ export function drawHubTrophy(ctx, player) {
   ctx.fillRect(-size * 0.75, size * 0.12, size * 1.5, size * 0.12);
 
   // Moss green cup, handles, and stem.
-  ctx.strokeStyle = '#4ade80';
+  ctx.strokeStyle = handleColor;
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.arc(-size * 0.4, -size * 0.28, size * 0.25, -Math.PI / 2, Math.PI / 2);
   ctx.arc(size * 0.4, -size * 0.28, size * 0.25, Math.PI / 2, -Math.PI / 2);
   ctx.stroke();
 
-  ctx.fillStyle = '#22c55e';
+  ctx.fillStyle = cupColor;
   ctx.beginPath();
   ctx.moveTo(-size * 0.52, -size * 0.55);
   ctx.lineTo(size * 0.52, -size * 0.55);
@@ -46,11 +58,11 @@ export function drawHubTrophy(ctx, player) {
   ctx.quadraticCurveTo(0, size * 0.22, -size * 0.38, -size * 0.12);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#86efac';
+  ctx.fillStyle = highlightColor;
   ctx.beginPath();
   ctx.ellipse(-size * 0.13, -size * 0.4, size * 0.12, size * 0.08, -0.5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#16a34a';
+  ctx.fillStyle = stemColor;
   ctx.fillRect(-size * 0.1, size * 0.05, size * 0.2, size * 0.18);
   ctx.fillRect(-size * 0.3, size * 0.19, size * 0.6, size * 0.09);
 

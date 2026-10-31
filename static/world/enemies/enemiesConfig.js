@@ -197,5 +197,64 @@ export const ENEMIES_CONFIG = {
       recover: 1.1,
       ringShots: 8
     }
-  }
+  },
+  abyssBoss: {
+    name: 'Abyssal Lurker',
+    title: 'Sovereign of the Sunken Abyss',
+    health: 100,
+    movementSpeed: 105,
+    turnRate: 1.9,
+    bodyMultiplier: 1,
+    lureMultiplier: 3,
+    stunMultiplier: 2,
+    contactDamage: 4,
+    deathTime: 2.6,
+    reward: 75,
+    attackDelay: { min: 1.3, max: 2.3 },
+    enrage: {
+      threshold: 0.5,
+      speedScale: 1.3,
+      cooldownScale: 0.7
+    },
+    bubbles: {
+      windup: 0.8,
+      recover: 0.7,
+      count: 5,
+      countPhaseTwo: 8,
+      spread: 1.1,
+      speed: 340,
+      friction: 1.2,
+      minLife: 1.4,
+      maxLife: 2.2,
+      radius: 14,
+      popRadius: 54,
+      damage: 4
+    },
+    pull: {
+      windup: 0.9,
+      duration: 2.2,
+      speed: 150,
+      range: 320,
+      chompRadius: 80,
+      chompDamage: 5,
+      stunAfter: 1.3,
+      interruptStun: 1.4
+    },
+    dive: {
+      sinkTime: 0.6,
+      trackTime: 1.5,
+      warnTime: 0.85,
+      trackSpeed: 280,
+      radius: 105,
+      damage: 5,
+      stun: 1.8,
+      knockback: 90,
+      satellites: 4,
+      satelliteRadius: 62,
+      satelliteDistance: 150,
+      satelliteDelay: 0.45,
+      satelliteStagger: 0.2,
+      satelliteDamage: 2
+    }
+  },
 };

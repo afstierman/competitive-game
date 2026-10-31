@@ -18,6 +18,9 @@ const LUNGE_TIME = 0.22;
 const crabs = new Map();
 let nextId = 0;
 let spawnTimer = CRAB_CONFIG.spawnRate.initialDelay;
+let totalKills = 0;
+
+export function getCrabKills() { return totalKills; }
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -87,7 +90,7 @@ function applySlash(player, swingAngle) {
       const hitFromAngle = Math.atan2(player.y - crab.y, player.x - crab.x);
       if (Math.abs(angleDifference(hitFromAngle, crab.facing)) < ARMOR_ARC) { crab.blockFlash = 0.18; return; }
       crab.hp -= player.slingshotDamage;
-      if (crab.hp <= 0) { crab.alive = false; player.cycles += 3; }
+      if (crab.hp <= 0) { crab.alive = false; player.cycles += 3; totalKills++; }
       return;
     }
     return;
@@ -114,6 +117,7 @@ function applySlash(player, swingAngle) {
     if (crab.hp <= 0) {
       crab.alive = false;
       player.cycles += 3;
+      totalKills++;
     }
   }
 }
@@ -122,6 +126,7 @@ export function resetCrabs() {
   crabs.clear();
   nextId = 0;
   spawnTimer = CRAB_CONFIG.spawnRate.initialDelay;
+  totalKills = 0;
 }
 
 export function damageCrabs(player, swingAngle) {

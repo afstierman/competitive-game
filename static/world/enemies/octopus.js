@@ -9,6 +9,9 @@ const BLUE_SECTION_OUTER_RADIUS = CONFIG.biomes[1].maxDistance;
 const PULL_DURATION = 1.8;
 const octopusesByTile = new Map();
 let spawnTimer = OCTOPUS_CONFIG.spawnRate.initialDelay;
+let totalKills = 0;
+
+export function getOctopusKills() { return totalKills; }
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -79,6 +82,7 @@ function applySlash(player, swingAngle) {
         octopus.alive = false;
         if (player.isGrabbedBy === octopus.id) player.isGrabbedBy = null;
         player.cycles += 5;
+        totalKills++;
       }
       return;
     }
@@ -132,6 +136,7 @@ function applySlash(player, swingAngle) {
         octopus.alive = false;
         if (player.isGrabbedBy === octopus.id) player.isGrabbedBy = null;
         player.cycles += 5;
+        totalKills++;
       }
     }
   }
@@ -140,6 +145,7 @@ function applySlash(player, swingAngle) {
 export function resetOctopuses() {
   octopusesByTile.clear();
   spawnTimer = OCTOPUS_CONFIG.spawnRate.initialDelay;
+  totalKills = 0;
 }
 
 export function damageOctopuses(player, swingAngle) {
