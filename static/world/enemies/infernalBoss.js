@@ -5,8 +5,8 @@ import { findOpenPosition } from '../world.js';
 const BOSS = ENEMIES_CONFIG.infernalBoss;
 const ENRAGE = {
   threshold: 0.4,
-  speedScale: 1.4,
-  cooldownScale: 0.6,
+  speedScale: 1.45,
+  cooldownScale: 0.55,
   ...(BOSS.enrage || {})
 };
 const DASH = BOSS.dash;
@@ -14,8 +14,8 @@ const GEYSER = BOSS.geyser;
 const NOVA = BOSS.nova;
 
 const ARENA_RADIUS = 600;
-const BOSS_RADIUS = 42;
-const INTRO_TIME = 1.8;
+const BOSS_RADIUS = 46;
+const INTRO_TIME = 2.0;
 const HIT_KEY = 'infernal-boss';
 const NAME = BOSS.name.toUpperCase();
 const TAU = Math.PI * 2;
@@ -24,17 +24,18 @@ const RING_COLORS = {
   fire: '249, 115, 22',
   amber: '251, 191, 36',
   magma: '239, 68, 68',
-  white: '254, 243, 199'
+  white: '254, 243, 199',
+  plasma: '244, 63, 94'
 };
 
-const EMBERS = Array.from({ length: 65 }, (_, i) => {
-  const a = Math.sin(i * 73.1) * 43758.5453;
-  const b = Math.sin(i * 19.4 + 2.1) * 24634.6345;
-  const c = Math.sin(i * 31.2 + 1.5) * 15731.7431;
+const EMBERS = Array.from({ length: 80 }, (_, i) => {
+  const a = Math.sin(i * 64.2) * 43758.5453;
+  const b = Math.sin(i * 22.1 + 1.4) * 24634.6345;
+  const c = Math.sin(i * 35.8 + 2.7) * 15731.7431;
   const r1 = a - Math.floor(a);
   const r2 = b - Math.floor(b);
   const r3 = c - Math.floor(c);
-  return { angle: r1 * TAU, dist: Math.sqrt(r2) * (ARENA_RADIUS - 26), size: 1 + r3 * 1.8, phase: r1 * 10 };
+  return { angle: r1 * TAU, dist: Math.sqrt(r2) * (ARENA_RADIUS - 28), size: 1 + r3 * 2.2, phase: r1 * 14 };
 });
 
 let boss = null;
@@ -74,31 +75,33 @@ export function startInfernalBoss(worldX, worldY, player, canvas) {
   const centerY = worldY;
   boss = {
     x: centerX,
-    y: centerY - 80,
+    y: centerY - 100,
     centerX,
     centerY,
     hp: BOSS.health,
     maxHp: BOSS.health,
-    state: 'intro', // intro | chase | dashWindup | dashing | geyserWindup | novaWindup | recover
+    state: 'intro', // intro | strafe | diveWindup | diving | bombWindup | vortexWindup | recover
     timer: INTRO_TIME,
     lastAttack: null,
     attackCooldown: 0,
     enraged: false,
     facing: Math.PI / 2,
-    dashTarget: { x: 0, y: 0 },
-    puddles: [],
-    geysers: [],
-    projectiles: [],
+    strafeAngle: 0,
+    diveTarget: { x: centerX, y: centerY },
+    shockwaves: [],
+    magmaPuddles: [],
+    clusterBombs: [],
+    orbitOrbs: [],
     effects: [],
     hitFlash: 0,
     elapsed: 0,
     defeated: false,
     defeatTimer: 0
   };
-  addRing(boss.x, boss.y, 3.5, 'fire', 1.0);
+  addRing(boss.x, boss.y, 4.0, 'plasma', 1.2);
 
   if (player) {
-    const spawn = findOpenPosition(centerX, centerY + 160, CONFIG.playerRadius);
+    const spawn = findOpenPosition(centerX, centerY + 180, CONFIG.playerRadius);
     player.x = spawn.x;
     player.y = spawn.y;
     if (canvas) {
@@ -118,9 +121,10 @@ export function startInfernalBoss(worldX, worldY, player, canvas) {
 function defeatBoss(player) {
   boss.defeated = true;
   boss.defeatTimer = BOSS.deathTime;
-  boss.puddles = [];
-  boss.geysers = [];
-  boss.projectiles = [];
+  boss.shockwaves = [];
+  boss.magmaPuddles = [];
+  boss.clusterBombs = [];
+  boss.orbitOrbs = [];
   player.cycles += BOSS.reward;
   window.dispatchEvent(new CustomEvent('infernal-boss-defeated', {
     detail: { x: boss.x, y: boss.y }
@@ -133,9 +137,9 @@ function applyDamage(player, angle) {
   if (shot && !player.slingshotShotActive) return;
   if (player.attackHitEnemies.has(HIT_KEY)) return;
 
-  const range = shot ? player.slingshotShotRange : 85;
+  const range = shot ? player.slingshotShotRange : 88;
   const attackAngle = shot ? player.slingshotShotAngle : angle;
-  const tolerance = shot ? 0.055 : 0.4;
+  const tolerance = shot ? 0.055 : 0.42;
 
   const dx = boss.x - player.x;
   const dy = boss.y - player.y;
@@ -151,8 +155,8 @@ function applyDamage(player, angle) {
   if (shot) player.slingshotShotActive = false;
 
   boss.hp -= baseDamage;
-  boss.hitFlash = 0.12;
-  addRing(boss.x, boss.y, 0.9, 'amber', 0.25);
+  boss.hitFlash = 0.14;
+  addRing(boss.x, boss.y, 1.1, 'plasma', 0.28);
   if (boss.hp <= 0) defeatBoss(player);
 }
 
@@ -164,7 +168,7 @@ export function damageInfernalBoss(player, swingAngle) {
 function hurtPlayer(player, amount, onDeath, message) {
   if (player.enemyDamageCooldown > 0) return;
   player.hp -= damageAfterArmor(player, amount);
-  player.enemyDamageCooldown = 0.85;
+  player.enemyDamageCooldown = 0.8;
   if (player.hp <= 0) onDeath?.(message);
 }
 
@@ -186,45 +190,45 @@ function keepInArena(margin) {
 }
 
 function pickAttack() {
-  const options = ['dash', 'geyser', 'nova'].filter(t => t !== boss.lastAttack);
+  const options = ['dive', 'bombs', 'vortex'].filter(t => t !== boss.lastAttack);
   return options[Math.floor(Math.random() * options.length)];
 }
 
 function startAttack(player, toPlayer) {
   const type = pickAttack();
   boss.lastAttack = type;
-  if (type === 'dash') {
-    boss.state = 'dashWindup';
+  if (type === 'dive') {
+    boss.state = 'diveWindup';
     boss.timer = DASH.windup;
     boss.facing = toPlayer;
-  } else if (type === 'geyser') {
-    boss.state = 'geyserWindup';
+  } else if (type === 'bombs') {
+    boss.state = 'bombWindup';
     boss.timer = GEYSER.windup;
     
-    // Target active prediction lines around player
+    // Scatter cluster bomb targets around the arena and near the player
     const count = boss.enraged ? GEYSER.countPhaseTwo : GEYSER.count;
-    boss.geysers = [];
-    for (let i = 0; i < count; i++) {
+    boss.clusterBombs = [];
+    for (let i = 0; i < count + 2; i++) {
       const angle = Math.random() * TAU;
-      const dist = rand(40, 220);
-      const gx = Math.max(boss.centerX - ARENA_RADIUS + 50, Math.min(boss.centerX + ARENA_RADIUS - 50, player.x + Math.cos(angle) * dist));
-      const gy = Math.max(boss.centerY - ARENA_RADIUS + 50, Math.min(boss.centerY + ARENA_RADIUS - 50, player.y + Math.sin(angle) * dist));
-      boss.geysers.push({
-        x: gx,
-        y: gy,
+      const dist = rand(60, 280);
+      const bx = Math.max(boss.centerX - ARENA_RADIUS + 60, Math.min(boss.centerX + ARENA_RADIUS - 60, player.x + Math.cos(angle) * dist));
+      const by = Math.max(boss.centerY - ARENA_RADIUS + 60, Math.min(boss.centerY + ARENA_RADIUS - 60, player.y + Math.sin(angle) * dist));
+      boss.clusterBombs.push({
+        x: bx,
+        y: by,
         timer: GEYSER.warnTime,
-        active: false,
-        duration: GEYSER.eruptionTime
+        exploded: false,
+        radius: GEYSER.radius
       });
     }
   } else {
-    boss.state = 'novaWindup';
+    boss.state = 'vortexWindup';
     boss.timer = NOVA.windup;
   }
 }
 
 function endAttack() {
-  boss.state = 'chase';
+  boss.state = 'strafe';
   boss.attackCooldown = nextCooldown();
 }
 
@@ -236,13 +240,13 @@ export function updateInfernalBoss(player, dt, canvas, onDeath) {
   for (const effect of boss.effects) effect.timer -= dt;
   boss.effects = boss.effects.filter(e => e.timer > 0);
 
-  for (const puddle of boss.puddles) puddle.life -= dt;
-  boss.puddles = boss.puddles.filter(p => p.life > 0);
+  for (const p of boss.magmaPuddles) p.life -= dt;
+  boss.magmaPuddles = boss.magmaPuddles.filter(p => p.life > 0);
 
   if (boss.defeated) {
     boss.defeatTimer -= dt;
-    if (Math.random() < dt * 18) {
-      addRing(boss.x + rand(-50, 50), boss.y + rand(-50, 50), rand(0.8, 1.8), Math.random() < 0.5 ? 'magma' : 'amber', 0.5);
+    if (Math.random() < dt * 20) {
+      addRing(boss.x + rand(-60, 60), boss.y + rand(-60, 60), rand(1.0, 2.2), Math.random() < 0.5 ? 'plasma' : 'amber', 0.6);
     }
     if (boss.defeatTimer <= 0) boss = null;
     return;
@@ -260,7 +264,7 @@ export function updateInfernalBoss(player, dt, canvas, onDeath) {
 
   if (!boss.enraged && healthRatio() < ENRAGE.threshold) {
     boss.enraged = true;
-    addRing(boss.x, boss.y, 4.0, 'magma', 1.0);
+    addRing(boss.x, boss.y, 4.5, 'plasma', 1.2);
   }
 
   const dx = player.x - boss.x;
@@ -272,14 +276,22 @@ export function updateInfernalBoss(player, dt, canvas, onDeath) {
   if (boss.state === 'intro') {
     boss.timer -= dt;
     if (boss.timer <= 0) {
-      boss.state = 'chase';
+      boss.state = 'strafe';
       boss.attackCooldown = nextCooldown();
     }
-  } else if (boss.state === 'chase') {
+  } else if (boss.state === 'strafe') {
+    // Dynamic organic circling & weaving around player rather than mindless direct chase
+    boss.strafeAngle += dt * 1.5;
+    const targetX = player.x + Math.cos(boss.strafeAngle) * 220;
+    const targetY = player.y + Math.sin(boss.strafeAngle) * 220;
+    const tdx = targetX - boss.x;
+    const tdy = targetY - boss.y;
+    const tDist = Math.hypot(tdx, tdy);
+    
     boss.facing = toPlayer;
-    if (distance > 70) {
-      boss.x += Math.cos(toPlayer) * speed * dt;
-      boss.y += Math.sin(toPlayer) * speed * dt;
+    if (tDist > 5) {
+      boss.x += (tdx / tDist) * speed * dt;
+      boss.y += (tdy / tDist) * speed * dt;
       keepInArena(BOSS_RADIUS + 20);
     }
 
@@ -287,67 +299,69 @@ export function updateInfernalBoss(player, dt, canvas, onDeath) {
     if (boss.attackCooldown <= 0) {
       startAttack(player, toPlayer);
     }
-  } else if (boss.state === 'dashWindup') {
+  } else if (boss.state === 'diveWingup') {
     boss.timer -= dt;
     boss.facing = toPlayer;
     if (boss.timer <= 0) {
-      boss.state = 'dashing';
+      boss.state = 'diving';
       boss.timer = DASH.duration;
-      // Lock dash vector toward player position at trigger moment + extra distance
-      const aimDist = Math.min(distance + 250, 600);
-      boss.dashTarget.x = boss.x + Math.cos(boss.facing) * aimDist;
-      boss.dashTarget.y = boss.y + Math.sin(boss.facing) * aimDist;
-      addRing(boss.x, boss.y, 3.0, 'magma', 0.5);
+      // High-speed devastating comet impact dive directly locking player location
+      boss.diveTarget.x = player.x;
+      boss.diveTarget.y = player.y;
+      addRing(boss.x, boss.y, 3.5, 'plasma', 0.6);
     }
-  } else if (boss.state === 'dashing') {
+  } else if (boss.state === 'diving') {
     boss.timer -= dt;
-    const moveStep = DASH.speed * dt;
-    boss.x += Math.cos(boss.facing) * moveStep;
-    boss.y += Math.sin(boss.facing) * moveStep;
-    keepInArena(BOSS_RADIUS + 10);
-
-    // Leave a damaging magma trail behind during dash
-    if (Math.random() < 0.4) {
-      boss.puddles.push({ x: boss.x, y: boss.y, radius: 28, life: DASH.trailDuration });
+    const tdx = boss.diveTarget.x - boss.x;
+    const tdy = boss.diveTarget.y - boss.y;
+    const tDist = Math.hypot(tdx, tdy);
+    const moveStep = Math.min(tDist, DASH.speed * dt);
+    
+    if (tDist > 5) {
+      boss.x += (tdx / tDist) * moveStep;
+      boss.y += (tdy / tDist) * moveStep;
     }
 
-    if (Math.hypot(player.x - boss.x, player.y - boss.y) < BOSS_RADIUS + 18) {
-      hurtPlayer(player, DASH.damage, onDeath, 'Run down by Pyraxis’s molten charge!');
-      if (!boss) return;
-    }
+    if (boss.timer <= 0 || tDist < 10) {
+      // Trigger massive shockwave ring blast on impact
+      addRing(boss.x, boss.y, 5.0, 'white', 0.8);
+      boss.shockwaves.push({ x: boss.x, y: boss.y, radius: 20, maxRadius: 280, speed: 380, life: 0.8 });
+      
+      // Leave scorching pool
+      boss.magmaPuddles.push({ x: boss.x, y: boss.y, radius: 42, life: 4.5 });
 
-    if (boss.timer <= 0) {
+      if (Math.hypot(player.x - boss.x, player.y - boss.y) < 70) {
+        hurtPlayer(player, DASH.damage, onDeath, 'Crushed beneath Pyraxis’s molten comet impact!');
+        if (!boss) return;
+      }
+
       boss.state = 'recover';
       boss.timer = DASH.recover;
     }
-  } else if (boss.state === 'geyserWindup') {
+  } else if (boss.state === 'bombWindup') {
     boss.timer -= dt;
     if (boss.timer <= 0) {
       boss.state = 'recover';
       boss.timer = GEYSER.recover;
     }
-  } else if (boss.state === 'novaWindup') {
+  } else if (boss.state === 'vortexWindup') {
     boss.timer -= dt;
     if (boss.timer <= 0) {
-      boss.state = 'releasingNova';
-      // Fire expanding flame rings from boss position
-      for (let r = 1; r <= NOVA.rings; r++) {
-        const ringDelay = (r - 1) * 0.25;
-        const count = 8 + r * 4;
-        for (let i = 0; i < count; i++) {
-          const angle = (i * TAU) / count;
-          boss.projectiles.push({
-            x: boss.x,
-            y: boss.y,
-            vx: Math.cos(angle) * NOVA.ringSpeed,
-            vy: Math.sin(angle) * NOVA.ringSpeed,
-            delay: ringDelay,
-            life: 4.0,
-            active: false
-          });
-        }
+      boss.state = 'releasingVortex';
+      // Summon orbiting magma claws/fireballs around the boss that expand outward
+      const count = 10;
+      for (let i = 0; i < count; i++) {
+        const angle = (i * TAU) / count;
+        boss.orbitOrbs.push({
+          angle: angle,
+          dist: 50,
+          speed: 2.5,
+          expansion: 80,
+          life: 4.5,
+          radius: NOVA.radius
+        });
       }
-      addRing(boss.x, boss.y, 4.2, 'white', 0.8);
+      addRing(boss.x, boss.y, 4.8, 'amber', 0.9);
       boss.state = 'recover';
       boss.timer = NOVA.recover;
     }
@@ -356,53 +370,61 @@ export function updateInfernalBoss(player, dt, canvas, onDeath) {
     if (boss.timer <= 0) endAttack();
   }
 
-  // Update geysers
-  for (const g of boss.geysers) {
-    if (!g.active) {
-      g.timer -= dt;
-      if (g.timer <= 0) {
-        g.active = true;
-        addRing(g.x, g.y, 2.2, 'magma', 0.4);
-      }
-    } else {
-      g.duration -= dt;
-      if (Math.hypot(player.x - g.x, player.y - g.y) < GEYSER.radius + 10) {
-        hurtPlayer(player, GEYSER.damage, onDeath, 'Blasted into ashes by a Magma Geyser!');
-        if (!boss) return;
-      }
-    }
-  }
-  boss.geysers = boss.geysers.filter(g => !g.active || g.duration > 0);
-
-  // Update projectiles (Nova rings)
-  for (const p of boss.projectiles) {
-    if (p.delay > 0) {
-      p.delay -= dt;
-      continue;
-    }
-    p.active = true;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.life -= dt;
-    if (Math.hypot(player.x - p.x, player.y - p.y) < NOVA.radius + 10) {
-      p.life = 0;
-      hurtPlayer(player, NOVA.damage, onDeath, 'Incinerated by Pyraxis’s Supernova Flame!');
+  // Update Shockwaves
+  for (const sw of boss.shockwaves) {
+    sw.radius += sw.speed * dt;
+    sw.life -= dt;
+    const pDist = Math.hypot(player.x - sw.x, player.y - sw.y);
+    if (Math.abs(pDist - sw.radius) < 18 && player.enemyDamageCooldown <= 0) {
+      hurtPlayer(player, NOVA.damage, onDeath, 'Swept off your feet by Pyraxis’s ground shockwave!');
       if (!boss) return;
     }
   }
-  boss.projectiles = boss.projectiles.filter(p => p.life > 0);
+  boss.shockwaves = boss.shockwaves.filter(sw => sw.life > 0 && sw.radius < sw.maxRadius);
 
-  // Update puddle hazards on floor
-  for (const p of boss.puddles) {
-    if (Math.hypot(player.x - p.x, player.y - p.y) < p.radius + 8) {
-      hurtPlayer(player, 4, onDeath, 'Melted in Pyraxis’s residual magma trails!');
+  // Update Cluster Bombs
+  for (const b of boss.clusterBombs) {
+    if (!b.exploded) {
+      b.timer -= dt;
+      if (b.timer <= 0) {
+        b.exploded = true;
+        addRing(b.x, b.y, 2.5, 'magma', 0.5);
+        boss.magmaPuddles.push({ x: b.x, y: b.y, radius: b.radius, life: 3.5 });
+        if (Math.hypot(player.x - b.x, player.y - b.y) < b.radius + 12) {
+          hurtPlayer(player, GEYSER.damage, onDeath, 'Blasted to cinders by a falling magma cluster bomb!');
+          if (!boss) return;
+        }
+      }
+    }
+  }
+  boss.clusterBombs = boss.clusterBombs.filter(b => !b.exploded);
+
+  // Update Orbiting Vortex Orbs
+  for (const orb of boss.orbitOrbs) {
+    orb.angle += orb.speed * dt;
+    orb.dist += orb.expansion * dt;
+    orb.life -= dt;
+    const ox = boss.x + Math.cos(orb.angle) * orb.dist;
+    const oy = boss.y + Math.sin(orb.angle) * orb.dist;
+    if (Math.hypot(player.x - ox, player.y - oy) < orb.radius + 10) {
+      orb.life = 0;
+      hurtPlayer(player, 6, onDeath, 'Torn apart by Pyraxis’s infernal vortex rings!');
+      if (!boss) return;
+    }
+  }
+  boss.orbitOrbs = boss.orbitOrbs.filter(orb => orb.life > 0);
+
+  // Update Puddles
+  for (const p of boss.magmaPuddles) {
+    if (Math.hypot(player.x - p.x, player.y - p.y) < p.radius + 6) {
+      hurtPlayer(player, 5, onDeath, 'Melted into slag in Pyraxis’s molten pools!');
       if (!boss) return;
     }
   }
 
   // Direct contact damage check
   if (Math.hypot(player.x - boss.x, player.y - boss.y) < BOSS_RADIUS + 12) {
-    pushPlayer(player, boss.x, boss.y, 35);
+    pushPlayer(player, boss.x, boss.y, 40);
     hurtPlayer(player, BOSS.contactDamage, onDeath, 'Trampled by the Molten Core Drake!');
     if (!boss) return;
   }
@@ -429,14 +451,14 @@ function drawEffect(ctx, effect, player) {
   const y = effect.y - player.cameraY;
   const s = effect.size;
   ctx.save();
-  ctx.fillStyle = `rgba(${color}, ${fade * 0.18})`;
+  ctx.fillStyle = `rgba(${color}, ${fade * 0.2})`;
   ctx.beginPath();
-  ctx.arc(x, y, (14 + t * 45) * s, 0, TAU);
+  ctx.arc(x, y, (16 + t * 50) * s, 0, TAU);
   ctx.fill();
   ctx.strokeStyle = `rgba(${color}, ${fade})`;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3.5;
   ctx.beginPath();
-  ctx.arc(x, y, (12 + t * 45) * s, 0, TAU);
+  ctx.arc(x, y, (14 + t * 50) * s, 0, TAU);
   ctx.stroke();
   ctx.restore();
 }
@@ -446,60 +468,64 @@ function drawArena(ctx, player, time) {
   const centerY = boss.centerY - player.cameraY;
   ctx.save();
   const fill = ctx.createRadialGradient(centerX, centerY, 20, centerX, centerY, ARENA_RADIUS);
-  fill.addColorStop(0, 'rgba(154, 52, 18, 0.4)');
-  fill.addColorStop(1, 'rgba(40, 10, 2, 0.55)');
+  fill.addColorStop(0, 'rgba(127, 29, 29, 0.45)');
+  fill.addColorStop(1, 'rgba(30, 9, 3, 0.65)');
   ctx.fillStyle = fill;
   ctx.beginPath();
   ctx.arc(centerX, centerY, ARENA_RADIUS, 0, TAU);
   ctx.fill();
 
   for (const ember of EMBERS) {
-    const pulse = 0.4 + Math.sin(time / 350 + ember.phase) * 0.4;
-    ctx.fillStyle = `rgba(251, 146, 60, ${Math.max(0.1, pulse)})`;
+    const pulse = 0.4 + Math.sin(time / 300 + ember.phase) * 0.45;
+    ctx.fillStyle = `rgba(244, 63, 94, ${Math.max(0.12, pulse)})`;
     ctx.fillRect(centerX + Math.cos(ember.angle) * ember.dist, centerY + Math.sin(ember.angle) * ember.dist, ember.size, ember.size);
   }
 
-  // Draw floor puddles
-  for (const p of boss.puddles) {
+  // Draw Magma Puddles
+  for (const p of boss.magmaPuddles) {
     const px = p.x - player.cameraX;
     const py = p.y - player.cameraY;
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.45)';
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.55)';
     ctx.beginPath();
     ctx.arc(px, py, p.radius, 0, TAU);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(254, 243, 199, 0.75)';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
   }
 
-  // Draw geyser warnings & eruptions
-  for (const g of boss.geysers) {
-    const gx = g.x - player.cameraX;
-    const gy = g.y - player.cameraY;
-    if (!g.active) {
-      const p = 1 - g.timer / GEYSER.warnTime;
-      ctx.fillStyle = `rgba(239, 68, 68, ${0.1 + p * 0.3})`;
+  // Draw Shockwaves
+  for (const sw of boss.shockwaves) {
+    const sx = sw.x - player.cameraX;
+    const sy = sw.y - player.cameraY;
+    const alpha = Math.max(0, sw.life / 0.8);
+    ctx.strokeStyle = `rgba(254, 243, 199, ${alpha})`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sw.radius, 0, TAU);
+    ctx.stroke();
+  }
+
+  // Draw Cluster Bomb indicators
+  for (const b of boss.clusterBombs) {
+    const bx = b.x - player.cameraX;
+    const by = b.y - player.cameraY;
+    if (!b.exploded) {
+      const p = 1 - b.timer / GEYSER.warnTime;
+      ctx.fillStyle = `rgba(244, 63, 94, ${0.12 + p * 0.35})`;
       ctx.beginPath();
-      ctx.arc(gx, gy, GEYSER.radius * p, 0, TAU);
+      ctx.arc(bx, by, b.radius * p, 0, TAU);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.9)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(gx, gy, GEYSER.radius, 0, TAU);
+      ctx.arc(bx, by, b.radius, 0, TAU);
       ctx.stroke();
-    } else {
-      const pillar = ctx.createLinearGradient(gx, gy + GEYSER.radius, gx, gy - 180);
-      pillar.addColorStop(0, 'rgba(249, 115, 22, 0.9)');
-      pillar.addColorStop(1, 'rgba(254, 243, 199, 0)');
-      ctx.fillStyle = pillar;
-      ctx.beginPath();
-      ctx.arc(gx, gy, GEYSER.radius + 6, 0, TAU);
-      ctx.fill();
     }
   }
 
-  ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
-  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(244, 63, 94, 0.95)';
+  ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.arc(centerX, centerY, ARENA_RADIUS, 0, TAU);
   ctx.stroke();
@@ -509,7 +535,7 @@ function drawArena(ctx, player, time) {
 function drawBossSprite(ctx, player, canvas, time) {
   const x = boss.x - player.cameraX;
   const y = boss.y - player.cameraY;
-  if (x < -200 || y < -200 || x > canvas.width + 200 || y > canvas.height + 200) return;
+  if (x < -220 || y < -220 || x > canvas.width + 220 || y > canvas.height + 220) return;
 
   const flash = boss.hitFlash > 0;
   let alpha = 1;
@@ -530,59 +556,66 @@ function drawBossSprite(ctx, player, canvas, time) {
   ctx.scale(scale, scale);
   ctx.rotate(boss.facing);
 
-  // Aura glow
-  const aura = ctx.createRadialGradient(0, 0, 15, 0, 0, 110);
-  aura.addColorStop(0, 'rgba(249, 115, 22, 0.5)');
+  // Dynamic Aura Glow
+  const aura = ctx.createRadialGradient(0, 0, 15, 0, 0, 130);
+  aura.addColorStop(0, 'rgba(244, 63, 94, 0.6)');
   aura.addColorStop(1, 'rgba(239, 68, 68, 0)');
   ctx.fillStyle = aura;
   ctx.beginPath();
-  ctx.arc(0, 0, 110, 0, TAU);
+  ctx.arc(0, 0, 130, 0, TAU);
   ctx.fill();
 
-  // Drake body
-  const bodyGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, BOSS_RADIUS);
+  // Majestic/Fierce Drake Body
+  const bodyGrad = ctx.createRadialGradient(-12, -12, 6, 0, 0, BOSS_RADIUS);
   if (flash) {
     bodyGrad.addColorStop(0, '#ffffff');
     bodyGrad.addColorStop(1, '#fef3c7');
   } else {
-    bodyGrad.addColorStop(0, '#ea580c');
-    bodyGrad.addColorStop(0.7, '#7c2d12');
-    bodyGrad.addColorStop(1, '#290505');
+    bodyGrad.addColorStop(0, '#f43f5e');
+    bodyGrad.addColorStop(0.65, '#9f1239');
+    bodyGrad.addColorStop(1, '#180308');
   }
-  ctx.shadowColor = '#f97316';
-  ctx.shadowBlur = 24;
+  ctx.shadowColor = '#f43f5e';
+  ctx.shadowBlur = 28;
   ctx.fillStyle = bodyGrad;
   ctx.strokeStyle = '#fef3c7';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3.5;
   ctx.beginPath();
   ctx.arc(0, 0, BOSS_RADIUS, 0, TAU);
   ctx.fill();
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Fierce glowing dragon eyes
+  // Draconic Horns / Crest spikes
   ctx.fillStyle = '#fef08a';
   ctx.beginPath();
-  ctx.arc(22, -10, 5, 0, TAU);
-  ctx.arc(22, 10, 5, 0, TAU);
+  ctx.moveTo(-10, -BOSS_RADIUS - 4);
+  ctx.lineTo(0, -BOSS_RADIUS - 16);
+  ctx.lineTo(10, -BOSS_RADIUS - 4);
+  ctx.fill();
+
+  // Glowing Eyes
+  ctx.fillStyle = '#fef3c7';
+  ctx.beginPath();
+  ctx.arc(24, -11, 5.5, 0, TAU);
+  ctx.arc(24, 11, 5.5, 0, TAU);
   ctx.fill();
 
   ctx.restore();
 }
 
 function drawProjectiles(ctx, player) {
-  for (const p of boss.projectiles) {
-    if (!p.active) continue;
-    const px = p.x - player.cameraX;
-    const py = p.y - player.cameraY;
+  for (const orb of boss.orbitOrbs) {
+    const ox = boss.x + Math.cos(orb.angle) * orb.dist - player.cameraX;
+    const oy = boss.y + Math.sin(orb.angle) * orb.dist - player.cameraY;
     ctx.save();
-    ctx.shadowColor = '#f97316';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = '#ea580c';
+    ctx.shadowColor = '#f43f5e';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = '#9f1239';
     ctx.strokeStyle = '#fef3c7';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(px, py, NOVA.radius, 0, TAU);
+    ctx.arc(ox, oy, orb.radius, 0, TAU);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -594,11 +627,11 @@ function drawHud(ctx, canvas, time) {
   const barX = (canvas.width - barWidth) / 2;
   const barY = 24;
   ctx.save();
-  ctx.fillStyle = 'rgba(20, 6, 2, 0.9)';
+  ctx.fillStyle = 'rgba(25, 5, 8, 0.92)';
   ctx.fillRect(barX - 10, barY - 8, barWidth + 20, 44);
-  ctx.fillStyle = '#291008';
+  ctx.fillStyle = '#38040e';
   ctx.fillRect(barX, barY + 12, barWidth, 14);
-  ctx.fillStyle = boss.enraged ? '#f97316' : '#ea580c';
+  ctx.fillStyle = boss.enraged ? '#f43f5e' : '#9f1239';
   ctx.fillRect(barX, barY + 12, barWidth * healthRatio(), 14);
   ctx.strokeStyle = '#fef3c7';
   ctx.lineWidth = 2;
