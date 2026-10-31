@@ -8,6 +8,8 @@ import { getCrabKills } from './world/enemies/crab.js';
 import { getOctopusKills } from './world/enemies/octopus.js';
 import { getComputerVirusKills } from './world/enemies/computerVirus.js';
 import { getMalwareWormKills } from './world/enemies/malwareWorm.js';
+import { getSkeletonKills } from './world/enemies/skeleton.js';
+import { getMagmaSlugKills } from './world/enemies/magmaSlug.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('screen');
@@ -31,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const octopusKillProgressEl = document.getElementById('almanac-octopus-kills');
   const virusKillProgressEl = document.getElementById('almanac-virus-kills');
   const wormKillProgressEl = document.getElementById('almanac-worm-kills');
+  const skeletonKillProgressEl = document.getElementById('almanac-skeleton-kills');
+  const slugKillProgressEl = document.getElementById('almanac-slug-kills');
   const almanacToggle = document.getElementById('almanac-toggle');
   const helpPanel = document.getElementById('help-panel');
   const helpToggle = document.getElementById('help-toggle');
@@ -360,6 +364,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (wormKillProgressEl) {
       const kills = getMalwareWormKills();
       wormKillProgressEl.textContent = `${kills} / 5 worm families defeated${kills >= 5 ? ' · threshold met' : ''}`;
+    }
+    if (skeletonKillProgressEl) {
+      const kills = getSkeletonKills();
+      skeletonKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · threshold met' : ''}`;
+    }
+    if (slugKillProgressEl) {
+      const kills = getMagmaSlugKills();
+      slugKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · infernal egg ready' : ''}`;
     }
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);

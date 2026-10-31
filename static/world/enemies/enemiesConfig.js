@@ -319,4 +319,45 @@ export const ENEMIES_CONFIG = {
       recover: 0.8
     }
   },
+  infernalBoss: {
+    name: 'Pyraxis',
+    title: 'The Molten Core Drake',
+    health: 250,
+    movementSpeed: 130,
+    contactDamage: 8,
+    deathTime: 3.2,
+    reward: 600,
+    attackDelay: { min: 1.0, max: 1.8 },
+    enrage: {
+      threshold: 0.4,
+      speedScale: 1.4,
+      cooldownScale: 0.6
+    },
+    dash: {
+      windup: 0.8,
+      duration: 0.5,
+      speed: 750,
+      damage: 10,
+      recover: 0.9,
+      trailDuration: 3.5
+    },
+    geyser: {
+      windup: 0.7,
+      count: 4,
+      countPhaseTwo: 7,
+      radius: 45,
+      warnTime: 1.1,
+      eruptionTime: 0.6,
+      damage: 7,
+      recover: 0.8
+    },
+    nova: {
+      windup: 1.1,
+      rings: 3,
+      ringSpeed: 240,
+      damage: 6,
+      radius: 12,
+      recover: 1.2
+    }
+  }
 };

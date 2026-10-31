@@ -8,15 +8,18 @@ import { damageMagmaSlugs, resetMagmaSlugs, updateMagmaSlugs, drawMagmaSlugs } f
 import { damageOvergrowthBossEgg, drawOvergrowthBossEgg, resetOvergrowthBossEgg, updateOvergrowthBossEgg } from './enemies/overgrowthBossEgg.js';
 import { damageAbyssBossEgg, drawAbyssBossEgg, resetAbyssBossEgg, updateAbyssBossEgg } from './enemies/abyssBossEgg.js';
 import { damageVoidBossEgg, drawVoidBossEgg, resetVoidBossEgg, updateVoidBossEgg } from './enemies/voidBossEgg.js';
+import { damageInfernalBossEgg, drawInfernalBossEgg, resetInfernalBossEgg, updateInfernalBossEgg } from './enemies/infernalBossEgg.js';
 import { damageOvergrowthBoss, drawOvergrowthBoss, isOvergrowthBossActive, resetOvergrowthBoss, startOvergrowthBoss, updateOvergrowthBoss } from './enemies/overgrowthBoss.js';
 import { damageAbyssBoss, drawAbyssBoss, isAbyssBossActive, resetAbyssBoss, startAbyssBoss, updateAbyssBoss } from './enemies/abyssBoss.js';
 import { damageVoidBoss, drawVoidBoss, isVoidBossActive, resetVoidBoss, startVoidBoss, updateVoidBoss } from './enemies/voidBoss.js';
+import { damageInfernalBoss, drawInfernalBoss, isInfernalBossActive, resetInfernalBoss, startInfernalBoss, updateInfernalBoss } from './enemies/infernalBoss.js';
 
 // Every boss plugs in here. Only one can be active at a time.
 const BOSSES = [
   { isActive: isOvergrowthBossActive, damage: damageOvergrowthBoss, update: updateOvergrowthBoss, draw: drawOvergrowthBoss },
   { isActive: isAbyssBossActive, damage: damageAbyssBoss, update: updateAbyssBoss, draw: drawAbyssBoss },
-  { isActive: isVoidBossActive, damage: damageVoidBoss, update: updateVoidBoss, draw: drawVoidBoss }
+  { isActive: isVoidBossActive, damage: damageVoidBoss, update: updateVoidBoss, draw: drawVoidBoss },
+  { isActive: isInfernalBossActive, damage: damageInfernalBoss, update: updateInfernalBoss, draw: drawInfernalBoss }
 ];
 
 function getActiveBoss() {
@@ -40,6 +43,11 @@ export function summonVoidBoss(x, y, player, canvas) {
   startVoidBoss(x, y, player, canvas);
 }
 
+export function summonInfernalBoss(x, y, player, canvas) {
+  if (getActiveBoss()) return;
+  startInfernalBoss(x, y, player, canvas);
+}
+
 export function resetEnemies() {
   resetComputerBugs();
   resetOctopuses();
@@ -51,9 +59,11 @@ export function resetEnemies() {
   resetOvergrowthBossEgg();
   resetAbyssBossEgg();
   resetVoidBossEgg();
+  resetInfernalBossEgg();
   resetOvergrowthBoss();
   resetAbyssBoss();
   resetVoidBoss();
+  resetInfernalBoss();
 }
 
 // During a boss fight only that boss runs, but the player's attacks still have to reach it
@@ -81,8 +91,10 @@ export function updateEnemies(player, dt, time, canvas, onDeath, onBossSummon) {
   updateOvergrowthBossEgg(player);
   updateAbyssBossEgg(player);
   updateVoidBossEgg(player);
+  updateInfernalBossEgg(player);
   const summonAbyss = (x, y, targetPlayer) => startAbyssBoss(x, y, targetPlayer, canvas);
   const summonVoid = (x, y, targetPlayer) => startVoidBoss(x, y, targetPlayer, canvas);
+  const summonInfernal = (x, y, targetPlayer) => startInfernalBoss(x, y, targetPlayer, canvas);
 
   let swingAngle = null;
   if (player.isAttacking && player.slashTimer > 0) {
@@ -97,6 +109,7 @@ export function updateEnemies(player, dt, time, canvas, onDeath, onBossSummon) {
     damageOvergrowthBossEgg(player, swingAngle, summonBoss);
     damageAbyssBossEgg(player, swingAngle, summonAbyss);
     damageVoidBossEgg(player, swingAngle, summonVoid);
+    damageInfernalBossEgg(player, swingAngle, summonInfernal);
   }
   if (player.activeWeapon === 'slingshot' && player.slingshotShotActive) {
     damageComputerBugs(player, null);
@@ -109,11 +122,13 @@ export function updateEnemies(player, dt, time, canvas, onDeath, onBossSummon) {
     damageOvergrowthBossEgg(player, null, summonBoss);
     damageAbyssBossEgg(player, null, summonAbyss);
     damageVoidBossEgg(player, null, summonVoid);
+    damageInfernalBossEgg(player, null, summonInfernal);
   }
 
   // Spawn each biome egg immediately when its kill requirements are met.
   updateAbyssBossEgg(player);
   updateVoidBossEgg(player);
+  updateInfernalBossEgg(player);
 
   // The egg may summon a boss during this update; pause regular mobs immediately.
   if (getActiveBoss()) return true;
@@ -143,4 +158,5 @@ export function drawEnemies(ctx, player, canvas, time) {
   drawOvergrowthBossEgg(ctx, player, time);
   drawAbyssBossEgg(ctx, player, time);
   drawVoidBossEgg(ctx, player, time);
+  drawInfernalBossEgg(ctx, player, time);
 }

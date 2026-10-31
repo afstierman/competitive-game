@@ -18,6 +18,9 @@ let globs = [];
 let puddles = [];
 let nextId = 0;
 let spawnTimer = SPAWN.initialDelay;
+let totalKills = 0;
+
+export function getMagmaSlugKills() { return totalKills; }
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -126,6 +129,7 @@ function applySlash(player, swingAngle) {
       if (slug.hp <= 0) {
         slug.alive = false;
         player.cycles += 6;
+        totalKills++;
         for (let i = 0; i < 4; i++) {
           const angle = i * Math.PI / 2 + Math.PI / 4;
           addPuddle(slug.x + Math.cos(angle) * 34, slug.y + Math.sin(angle) * 34, SPIT.puddleRadius * 0.8, SPIT.puddleDuration * 0.75);
@@ -155,6 +159,7 @@ function applySlash(player, swingAngle) {
     if (slug.hp <= 0) {
       slug.alive = false;
       player.cycles += 6;
+      totalKills++;
       // Death eruption: leaves a ring of lava puddles
       for (let i = 0; i < 4; i++) {
         const angle = i * Math.PI / 2 + Math.PI / 4;
@@ -170,6 +175,7 @@ export function resetMagmaSlugs() {
   puddles = [];
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
+  totalKills = 0;
 }
 
 export function damageMagmaSlugs(player, swingAngle) {

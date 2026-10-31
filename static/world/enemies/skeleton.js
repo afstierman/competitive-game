@@ -17,6 +17,9 @@ const LOCK_TIME = 0.15;      // aim locks this long before the swing
 const skeletons = new Map();
 let nextId = 0;
 let spawnTimer = SPAWN.initialDelay;
+let totalKills = 0;
+
+export function getSkeletonKills() { return totalKills; }
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -112,7 +115,7 @@ function applySlash(player, swingAngle) {
       skeleton.hp -= player.slingshotDamage;
       skeleton.hitFlash = 0.12;
       player.attackHitEnemies.add(skeleton.id);
-      if (skeleton.hp <= 0) { skeleton.alive = false; player.cycles += 8; }
+      if (skeleton.hp <= 0) { skeleton.alive = false; player.cycles += 8; totalKills++; }
       return;
     }
     return;
@@ -137,6 +140,7 @@ function applySlash(player, swingAngle) {
     if (skeleton.hp <= 0) {
       skeleton.alive = false;
       player.cycles += 8;
+      totalKills++;
     }
   }
 }
@@ -145,6 +149,7 @@ export function resetSkeletons() {
   skeletons.clear();
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
+  totalKills = 0;
 }
 
 export function damageSkeletons(player, swingAngle) {

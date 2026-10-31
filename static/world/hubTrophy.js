@@ -3,15 +3,18 @@ import { CONFIG } from '../config.js';
 const TROPHY_LOCATION = { x: 128, y: -144 };
 const ABYSS_TROPHY_LOCATION = { x: 192, y: -144 };
 const VOID_TROPHY_LOCATION = { x: 256, y: -144 };
+const INFERNAL_TROPHY_LOCATION = { x: 320, y: -144 };
 
 let trophyUnlocked = false;
 let abyssTrophyUnlocked = false;
 let voidTrophyUnlocked = false;
+let infernalTrophyUnlocked = false;
 
 window.addEventListener('simulation-restarted', () => {
   trophyUnlocked = false;
   abyssTrophyUnlocked = false;
   voidTrophyUnlocked = false;
+  infernalTrophyUnlocked = false;
 });
 
 window.addEventListener('overgrowth-boss-defeated', () => {
@@ -26,10 +29,15 @@ window.addEventListener('void-boss-defeated', () => {
   voidTrophyUnlocked = true;
 });
 
+window.addEventListener('infernal-boss-defeated', () => {
+  infernalTrophyUnlocked = true;
+});
+
 export function drawHubTrophy(ctx, player) {
   if (trophyUnlocked) drawTrophy(ctx, player, TROPHY_LOCATION, '#22c55e', '#4ade80', '#86efac', '#16a34a');
   if (abyssTrophyUnlocked) drawTrophy(ctx, player, ABYSS_TROPHY_LOCATION, '#0284c7', '#38bdf8', '#bae6fd', '#0369a1');
   if (voidTrophyUnlocked) drawTrophy(ctx, player, VOID_TROPHY_LOCATION, '#9333ea', '#c084fc', '#e9d5ff', '#7e22ce');
+  if (infernalTrophyUnlocked) drawTrophy(ctx, player, INFERNAL_TROPHY_LOCATION, '#c2410c', '#fb923c', '#fed7aa', '#9a3412');
 }
 
 function drawTrophy(ctx, player, location, cupColor, handleColor, highlightColor, stemColor) {
