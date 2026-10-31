@@ -134,8 +134,8 @@ export const ENEMIES_CONFIG = {
     damage: 6,
     spawnRate: {
       initialDelay: 1,
-      minInterval: 3,
-      maxInterval: 5,
+      minInterval: 4,
+      maxInterval: 7,
       maxAlive: 3
     },
     movementSpeed: 100,
@@ -209,7 +209,7 @@ export const ENEMIES_CONFIG = {
     stunMultiplier: 2,
     contactDamage: 4,
     deathTime: 2.6,
-    reward: 75,
+    reward: 150,
     attackDelay: { min: 1.3, max: 2.3 },
     enrage: {
       threshold: 0.5,
@@ -255,6 +255,68 @@ export const ENEMIES_CONFIG = {
       satelliteDelay: 0.45,
       satelliteStagger: 0.2,
       satelliteDamage: 2
+    }
+  },
+  voidBoss: {
+    name: 'Null Singularity',
+    title: 'Warden of the Void Nebula',
+    health: 200,
+    movementSpeed: 85,
+    shieldMultiplier: 0.25,
+    overloadMultiplier: 3,
+    contactDamage: 7,
+    deathTime: 3,
+    reward: 500,
+    attackDelay: { min: 1.2, max: 2.1 },
+    enrage: {
+      threshold: 0.5,
+      speedScale: 1.3,
+      cooldownScale: 0.7
+    },
+    sentinels: {
+      count: 4,
+      health: 10,
+      enragedHealthBonus: 5,
+      orbitRadius: 108,
+      orbitSpeed: 1.2,
+      radius: 18,
+      overloadTime: 3.6
+    },
+    beam: {
+      windup: 1,
+      lockTime: 0.35,
+      duration: 2.6,
+      sweep: 0.67,
+      width: 35,
+      length: 580,
+      damage: 7,
+      count: 2,
+      countPhaseTwo: 3,
+      recover: 0.7
+    },
+    grid: {
+      cellSize: 96,
+      reach: 330,
+      warn: 1.1,
+      waveGap: 0.8,
+      waves: 2,
+      wavesPhaseTwo: 3,
+      blast: 0.35,
+      damage: 6,
+      recover: 0.5
+    },
+    spiral: {
+      windup: 0.9,
+      duration: 3.2,
+      rate: 6,
+      arms: 2,
+      armsPhaseTwo: 3,
+      turn: 1.3,
+      speed: 200,
+      damage: 5,
+      radius: 9,
+      life: 5,
+      recover: 0.8
     }
   },
 };

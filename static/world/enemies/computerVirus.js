@@ -16,6 +16,9 @@ const viruses = new Map();
 let effects = [];
 let nextId = 0;
 let spawnTimer = SPAWN.initialDelay;
+let totalKills = 0;
+
+export function getComputerVirusKills() { return totalKills; }
 
 function angleDifference(a, b) {
   return Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -102,7 +105,7 @@ function applySlash(player, swingAngle) {
       virus.hp -= player.slingshotDamage;
       virus.hitFlash = 0.12;
       player.attackHitEnemies.add(virus.id);
-      if (virus.hp <= 0) { virus.alive = false; player.cycles += 4; }
+      if (virus.hp <= 0) { virus.alive = false; player.cycles += 4; totalKills++; }
       return;
     }
     return;
@@ -128,6 +131,7 @@ function applySlash(player, swingAngle) {
     if (virus.hp <= 0) {
       virus.alive = false;
       player.cycles += 4;
+      totalKills++;
     }
   }
 }
@@ -137,6 +141,7 @@ export function resetComputerViruses() {
   effects = [];
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
+  totalKills = 0;
 }
 
 export function damageComputerViruses(player, swingAngle) {
