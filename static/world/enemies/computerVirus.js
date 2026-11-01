@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
 
 const VIRUS_CONFIG = ENEMIES_CONFIG.computerVirus;
 const SPAWN = VIRUS_CONFIG.spawnRate;
@@ -150,6 +150,7 @@ export function damageComputerViruses(player, swingAngle) {
 }
 
 export function updateComputerViruses(player, dt, onDeath) {
+  despawnDistantEnemies(viruses, player);
   if (inPurpleSection(player.x, player.y)) {
     spawnTimer -= dt;
     if (spawnTimer <= 0) {

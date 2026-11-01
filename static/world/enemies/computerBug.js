@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getBiomeAtDistance, getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
 
 const BUG_CONFIG = ENEMIES_CONFIG.computerBug;
 
@@ -100,6 +100,7 @@ export function damageComputerBugs(player, swingAngle) {
 }
 
 export function updateComputerBugs(player, dt, onDeath) {
+  despawnDistantEnemies(enemiesByCell, player);
   const playerDistance = Math.hypot(player.x, player.y);
   if (playerDistance < FIRST_SECTION_RADIUS) {
     spawnTimer -= dt;

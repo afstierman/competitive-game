@@ -1,3 +1,17 @@
+import { CONFIG } from '../../config.js';
+
+const DESPAWN_DISTANCE = CONFIG.enemyChaseRange * 2;
+
+export function despawnDistantEnemies(enemies, player) {
+  const maxDistanceSquared = DESPAWN_DISTANCE * DESPAWN_DISTANCE;
+  for (const [key, enemy] of enemies) {
+    if (!enemy || enemy.alive === false) continue;
+    const dx = enemy.x - player.x;
+    const dy = enemy.y - player.y;
+    if (dx * dx + dy * dy > maxDistanceSquared) enemies.delete(key);
+  }
+}
+
 export function damageAfterArmor(player, damage) {
   return Math.max(1, damage - (player.armorReduction || 0));
 }

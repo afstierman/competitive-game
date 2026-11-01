@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
 
 const SKELETON_CONFIG = ENEMIES_CONFIG.skeleton;
 const SPAWN = SKELETON_CONFIG.spawnRate;
@@ -158,6 +158,7 @@ export function damageSkeletons(player, swingAngle) {
 }
 
 export function updateSkeletons(player, dt, canvas, onDeath) {
+  despawnDistantEnemies(skeletons, player);
   if (inFarSection(player.x, player.y)) {
     spawnTimer -= dt;
     if (spawnTimer <= 0) {
