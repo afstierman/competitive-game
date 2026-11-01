@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
@@ -95,6 +95,7 @@ function trySpawnNearPlayer(player) {
 }
 
 function moveSkeleton(skeleton, angle, speed, dt) {
+  angle = getObstacleAvoidanceAngle(skeleton.x, skeleton.y, angle, speed * dt, BODY_RADIUS, (x, y) => !isLavaAt(x, y), skeleton);
   const nextX = skeleton.x + Math.cos(angle) * speed * dt;
   const nextY = skeleton.y + Math.sin(angle) * speed * dt;
   if (!checkCollision(nextX, skeleton.y, 9) && !isLavaAt(nextX, skeleton.y)) skeleton.x = nextX;

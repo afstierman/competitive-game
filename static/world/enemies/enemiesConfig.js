@@ -201,7 +201,7 @@ export const ENEMIES_CONFIG = {
   abyssBoss: {
     name: 'Abyssal Lurker',
     title: 'Sovereign of the Sunken Abyss',
-    health: 100,
+    health: 130,
     movementSpeed: 105,
     turnRate: 1.9,
     bodyMultiplier: 1,
@@ -235,9 +235,9 @@ export const ENEMIES_CONFIG = {
       duration: 2.2,
       speed: 150,
       range: 320,
-      chompRadius: 80,
+      chompRadius: 90,
       chompDamage: 5,
-      stunAfter: 1.3,
+      stunAfter: 1,
       interruptStun: 1.4
     },
     dive: {

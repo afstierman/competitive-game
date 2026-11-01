@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
 
@@ -183,8 +183,10 @@ export function updateOctopuses(player, dt, canvas, onDeath) {
     if (distance < CONFIG.enemyChaseRange && distance > 1 && octopus.attackAnimationTimer === 0 && octopus.pullTimer === 0 && !octopus.isGrabbing) {
       octopus.walkTimer += dt * 8;
       const step = octopus.speed * dt;
-      const nextX = octopus.x + dx / distance * step;
-      const nextY = octopus.y + dy / distance * step;
+      const heading = getObstacleAvoidanceAngle(octopus.x, octopus.y, Math.atan2(dy, dx), step, 9,
+        (x, y) => isDeepWaterTile(Math.floor(x / CONFIG.tileSize), Math.floor(y / CONFIG.tileSize)), octopus);
+      const nextX = octopus.x + Math.cos(heading) * step;
+      const nextY = octopus.y + Math.sin(heading) * step;
       if (isDeepWaterTile(Math.floor(nextX / CONFIG.tileSize), Math.floor(octopus.y / CONFIG.tileSize)) && !checkCollision(nextX, octopus.y, 9)) octopus.x = nextX;
       if (isDeepWaterTile(Math.floor(octopus.x / CONFIG.tileSize), Math.floor(nextY / CONFIG.tileSize)) && !checkCollision(octopus.x, nextY, 9)) octopus.y = nextY;
     }

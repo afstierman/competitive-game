@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
@@ -75,6 +75,7 @@ function trySpawnNearPlayer(player) {
 }
 
 function moveCrab(crab, angle, speed, dt) {
+  angle = getObstacleAvoidanceAngle(crab.x, crab.y, angle, speed * dt, 9, undefined, crab);
   const nextX = crab.x + Math.cos(angle) * speed * dt;
   const nextY = crab.y + Math.sin(angle) * speed * dt;
   if (!checkCollision(nextX, crab.y, 9)) crab.x = nextX;

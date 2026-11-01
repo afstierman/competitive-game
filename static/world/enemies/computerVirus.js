@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
@@ -91,6 +91,7 @@ function findLandingSpot(virus, player) {
 }
 
 function moveVirus(virus, angle, speed, dt) {
+  angle = getObstacleAvoidanceAngle(virus.x, virus.y, angle, speed * dt, 9, undefined, virus);
   const nextX = virus.x + Math.cos(angle) * speed * dt;
   const nextY = virus.y + Math.sin(angle) * speed * dt;
   if (!checkCollision(nextX, virus.y, 9)) virus.x = nextX;

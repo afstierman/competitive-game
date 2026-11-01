@@ -146,6 +146,66 @@ export function checkCollision(x, y, radius) {
   return false;
 }
 
+// Pick a nearby heading with room to move when the direct route is blocked.
+// A wider look-ahead and turn angle help enemies clear the side of a rock
+// instead of repeatedly pressing against its edge.
+const avoidanceState = new WeakMap();
+
+export function getObstacleAvoidanceAngle(x, y, angle, step, radius = 9, canMove = () => true, actor = null) {
+  const state = actor ? (avoidanceState.get(actor) ?? { x, y, stuckTime: 0, detourTime: 0, side: 1 }) : null;
+  if (state) {
+    const moved = Math.hypot(x - state.x, y - state.y);
+    state.stuckTime = moved < Math.max(0.5, step * 0.12) ? state.stuckTime + Math.min(0.1, step / 20) : 0;
+    state.x = x;
+    state.y = y;
+    state.detourTime = Math.max(0, state.detourTime - Math.min(0.1, step / 20));
+  }
+
+  const lookAhead = Math.max(100, step * 8);
+  const isOpen = heading => {
+    // Sample the whole route so a rock in the middle cannot be missed.
+    for (let distance = 20; distance <= lookAhead; distance += 20) {
+      const probeX = x + Math.cos(heading) * distance;
+      const probeY = y + Math.sin(heading) * distance;
+      if (checkCollision(probeX, probeY, radius) || !canMove(probeX, probeY)) return false;
+    }
+    return true;
+  };
+  const blocked = !isOpen(angle);
+  if (!blocked && (!state || state.stuckTime < 0.25) && (!state || state.detourTime === 0)) {
+    if (state) avoidanceState.set(actor, state);
+    return angle;
+  }
+
+  if (state && state.stuckTime >= 0.25 && state.detourTime === 0) {
+    state.side *= -1;
+    state.detourTime = 0.9;
+  }
+
+  const offsets = [];
+  const side = state?.side ?? 1;
+  for (const degrees of [45, 70, 95, 120, 145, 170]) {
+    const offset = degrees * Math.PI / 180;
+    offsets.push(offset * side, -offset * side);
+  }
+
+  let bestAngle = angle;
+  let bestScore = -Infinity;
+  for (const offset of offsets) {
+    const candidate = angle + offset;
+    if (!isOpen(candidate)) continue;
+
+    // Prefer a clear route with forward progress, but avoid grazing the rock.
+    const score = Math.cos(offset) - Math.abs(offset) * 0.015;
+    if (score > bestScore) {
+      bestScore = score;
+      bestAngle = candidate;
+    }
+  }
+  if (state) avoidanceState.set(actor, state);
+  return bestAngle;
+}
+
 export function findOpenPosition(x, y, radius) {
   if (!checkCollision(x, y, radius)) return { x, y };
 

@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
@@ -92,6 +92,7 @@ function trySpawnNearPlayer(player) {
 }
 
 function moveSlug(slug, angle, speed, dt) {
+  angle = getObstacleAvoidanceAngle(slug.x, slug.y, angle, speed * dt, 9, undefined, slug);
   const nextX = slug.x + Math.cos(angle) * speed * dt;
   const nextY = slug.y + Math.sin(angle) * speed * dt;
   if (!checkCollision(nextX, slug.y, 9)) slug.x = nextX;

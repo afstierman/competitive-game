@@ -1,5 +1,5 @@
 import { CONFIG } from '../../config.js';
-import { checkCollision } from '../world.js';
+import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getBiomeAtDistance, getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
 import { ENEMIES_CONFIG, damageAfterArmor, isSlingshotHit } from './enemiesConfig.js';
@@ -139,8 +139,9 @@ export function updateComputerBugs(player, dt, onDeath) {
     if (distance < CONFIG.enemyChaseRange && distance > 1) {
       enemy.walkTimer += dt * 8;
       const step = enemy.speed * dt;
-      const nextX = enemy.x + dx / distance * step;
-      const nextY = enemy.y + dy / distance * step;
+      const heading = getObstacleAvoidanceAngle(enemy.x, enemy.y, Math.atan2(dy, dx), step, 9, undefined, enemy);
+      const nextX = enemy.x + Math.cos(heading) * step;
+      const nextY = enemy.y + Math.sin(heading) * step;
       if (!checkCollision(nextX, enemy.y, 9)) enemy.x = nextX;
       if (!checkCollision(enemy.x, nextY, 9)) enemy.y = nextY;
     }
