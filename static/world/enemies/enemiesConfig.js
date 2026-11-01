@@ -78,11 +78,11 @@ export const ENEMIES_CONFIG = {
   },
   skeleton: {
     health: 25,
-    damage: 12,
+    damage: 10,
     spawnRate: {
       initialDelay: 3,
-      minInterval: 4,
-      maxInterval: 6.5,
+      minInterval: 5,
+      maxInterval: 7.5,
       maxAlive: 3
     },
     movementSpeed: 140,
@@ -322,11 +322,11 @@ export const ENEMIES_CONFIG = {
   infernalBoss: {
     name: 'Pyraxis',
     title: 'The Molten Core Drake',
-    health: 250,
+    health: 200,
     movementSpeed: 130,
-    contactDamage: 8,
+    contactDamage: 10,
     deathTime: 3.2,
-    reward: 600,
+    reward: 1500,
     attackDelay: { min: 1.0, max: 1.8 },
     enrage: {
       threshold: 0.4,
@@ -337,7 +337,7 @@ export const ENEMIES_CONFIG = {
       windup: 0.8,
       duration: 0.5,
       speed: 750,
-      damage: 10,
+      damage: 11,
       recover: 0.9,
       trailDuration: 3.5
     },
@@ -348,14 +348,14 @@ export const ENEMIES_CONFIG = {
       radius: 45,
       warnTime: 1.1,
       eruptionTime: 0.6,
-      damage: 7,
+      damage: 10,
       recover: 0.8
     },
     nova: {
       windup: 1.1,
       rings: 3,
-      ringSpeed: 240,
-      damage: 6,
+      ringSpeed: 120,
+      damage: 8,
       radius: 12,
       recover: 1.2
     }
