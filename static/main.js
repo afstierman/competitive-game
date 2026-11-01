@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (!biomeEl) {
       const span = document.createElement('span');
-      span.innerHTML = 'SECTOR: <strong id="ui-biome">Mossy Overgrowth</strong>';
+      span.innerHTML = '<strong id="ui-biome">Mossy Overgrowth</strong>';
       statsContainer.insertBefore(span, statsContainer.firstChild);
       biomeEl = document.getElementById('ui-biome');
     }

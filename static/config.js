@@ -14,13 +14,13 @@ export const CONFIG = {
   slingshots: [
     { name: 'Mossy Slingshot', price: 25, damage: 1, color: '#4ade80' },
     { name: 'Aqua Slingshot', price: 100, damage: 2, color: '#38bdf8' },
-    { name: 'Blackhole Slingshot', price: 400, damage: 3, color: '#c084fc' },
-    { name: 'Infernal Slingshot', price: 1000, damage: 5, color: '#ef4444' }
+    { name: 'Blackhole Slingshot', price: 400, damage: 4, color: '#c084fc' },
+    { name: 'Infernal Slingshot', price: 1000, damage: 6, color: '#ef4444' }
   ],
   armors: [
     { name: 'Mossy Armor', price: 25, blockedDamage: 1, color: '#4ade80' },
     { name: 'Aqua Armor', price: 100, blockedDamage: 2, color: '#38bdf8' },
-    { name: 'Blackhole Armor', price: 400, blockedDamage: 4, color: '#c084fc' },
+    { name: 'Blackhole Armor', price: 400, blockedDamage: 5, color: '#c084fc' },
     { name: 'Infernal Armor', price: 1000, blockedDamage: 8, color: '#ef4444' }
   ],
 
