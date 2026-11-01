@@ -169,13 +169,13 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetMagmaSlugs() {
+export function resetMagmaSlugs(preserveProgress = false) {
   slugs.clear();
   globs = [];
   puddles = [];
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageMagmaSlugs(player, swingAngle) {

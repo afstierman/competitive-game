@@ -122,11 +122,11 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetCrabs() {
+export function resetCrabs(preserveProgress = false) {
   crabs.clear();
   nextId = 0;
   spawnTimer = CRAB_CONFIG.spawnRate.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageCrabs(player, swingAngle) {

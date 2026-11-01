@@ -10,7 +10,8 @@ let abyssTrophyUnlocked = false;
 let voidTrophyUnlocked = false;
 let infernalTrophyUnlocked = false;
 
-window.addEventListener('simulation-restarted', () => {
+window.addEventListener('simulation-restarted', event => {
+  if (event.detail?.resetProgress === false) return;
   trophyUnlocked = false;
   abyssTrophyUnlocked = false;
   voidTrophyUnlocked = false;

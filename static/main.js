@@ -1,6 +1,6 @@
 import { createPlayer, startPlayerAttack, releasePlayerAttack, updatePlayer, drawPlayer } from './player.js';
 import { CONFIG } from './config.js';
-import { drawWorld, getBiomeAtPosition } from './world/world.js';
+import { drawWorld, getBiomeAtPosition, resetCollectedCrystals } from './world/world.js';
 import { isNearShop } from './world/shop.js';
 import { drawEnemies, resetEnemies, updateEnemies } from './world/enemies.js';
 import { getComputerBugKills } from './world/enemies/computerBug.js';
@@ -38,8 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const almanacToggle = document.getElementById('almanac-toggle');
   const helpPanel = document.getElementById('help-panel');
   const helpToggle = document.getElementById('help-toggle');
-  const testerToggle = document.getElementById('tester-toggle');
-  const testerStatus = document.getElementById('tester-status');
+  const gameModeSelect = document.getElementById('game-mode');
+  const modeStatus = document.getElementById('mode-status');
+  const gameModes = ['normal', 'hardcore', 'explorer'];
 
   let cyclesEl = document.getElementById('ui-cycles');
   let biomeEl = document.getElementById('ui-biome');
@@ -66,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let shopOpen = false;
   let almanacOpen = false;
   let helpOpen = false;
-  let testerMode = false;
+  let gameMode = 'normal';
   const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
   const keys = {};
 
@@ -75,16 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let bannerTimer = 0;
 
   function canAfford(cost) {
-    return testerMode || player.cycles >= cost;
+    return gameMode === 'explorer' || player.cycles >= cost;
   }
 
   function spendCycles(cost) {
-    if (!testerMode) player.cycles -= cost;
+    if (gameMode !== 'explorer') player.cycles -= cost;
   }
 
   function refreshShop() {
     const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
-    shopCyclesEl.textContent = testerMode ? '∞' : player.cycles;
+    shopCyclesEl.textContent = gameMode === 'explorer' ? '∞' : player.cycles;
     healButton.textContent = 'Heal 1 heart · 10 cycles';
     healthButton.textContent = `+1 max health · ${healthUpgradeCost} cycles`;
     healButton.disabled = !canAfford(10) || player.hp >= player.maxHp;
@@ -228,13 +229,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   document.getElementById('help-close').addEventListener('click', () => setHelpOpen(false));
-  testerToggle.addEventListener('click', () => {
-    testerMode = !testerMode;
-    testerToggle.setAttribute('aria-pressed', String(testerMode));
-    testerToggle.textContent = testerMode ? 'Disable tester mode' : 'Enable tester mode';
-    testerStatus.textContent = testerMode
-      ? 'Tester mode is on. Shop purchases are free.'
-      : 'Tester mode is off.';
+  gameModeSelect.addEventListener('click', () => {
+    gameMode = gameModes[(gameModes.indexOf(gameMode) + 1) % gameModes.length];
+    gameModeSelect.textContent = `Mode: ${gameMode[0].toUpperCase()}${gameMode.slice(1)}`;
+    const descriptions = {
+      normal: 'Normal mode: cycles are lost on death; items and progress are kept.',
+      hardcore: 'Hardcore mode: death resets your run and collected crystals respawn.',
+      explorer: 'Explorer mode: shop purchases are free and progress resets on death.'
+    };
+    modeStatus.textContent = descriptions[gameMode];
     if (shopOpen) refreshShop();
   });
   healButton.addEventListener('click', () => {
@@ -270,19 +273,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function triggerGameOver(reason) {
     isRunning = false;
+    const diedInMode = gameMode;
+    const carriedCycles = player.cycles;
+    const resetProgress = diedInMode !== 'normal';
+    resetEnemies({ preserveProgress: !resetProgress });
+    window.dispatchEvent(new CustomEvent('simulation-restarted', { detail: { resetProgress } }));
+    if (diedInMode === 'hardcore') resetCollectedCrystals();
     overlay.classList.remove('hidden');
+    const deathResult = diedInMode === 'normal'
+      ? `Lost Cycles: <b>${carriedCycles}</b><br>Items and progress kept.`
+      : diedInMode === 'hardcore'
+        ? 'All run progress reset. Crystals have respawned.'
+        : `Extracted Cycles: <b>${carriedCycles}</b>`;
     overlay.innerHTML = `
       <h2 style="color:#f87171;">SYSTEM TERMINATED</h2>
-      <p>${reason}<br>Extracted Cycles: <b>${player.cycles}</b></p>
+      <p>${reason}<br>${deathResult}</p>
       <button id="launch-btn">RESTART SIMULATION</button>
     `;
     document.getElementById('launch-btn').addEventListener('click', startNewRun);
   }
 
   function startNewRun() {
+    const previousPlayer = player;
     player = createPlayer();
-    resetEnemies();
-    window.dispatchEvent(new Event('simulation-restarted'));
+    if (gameMode === 'normal' && previousPlayer.hp <= 0) {
+      player.maxHp = previousPlayer.maxHp;
+      player.swordTier = previousPlayer.swordTier;
+      player.swordDamage = previousPlayer.swordDamage;
+      player.swordColor = previousPlayer.swordColor;
+      player.slingshotTier = previousPlayer.slingshotTier;
+      player.slingshotDamage = previousPlayer.slingshotDamage;
+      player.slingshotColor = previousPlayer.slingshotColor;
+      player.armorTier = previousPlayer.armorTier;
+      player.armorReduction = previousPlayer.armorReduction;
+      player.armorColor = previousPlayer.armorColor;
+      player.hp = player.maxHp;
+    } else if (gameMode !== 'normal') {
+      resetEnemies();
+      window.dispatchEvent(new CustomEvent('simulation-restarted', { detail: { resetProgress: true } }));
+    }
     setShopOpen(false);
     setAlmanacOpen(false);
     setHelpOpen(false);
@@ -341,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
     hpEl.textContent = `${'♥'.repeat(player.hp)}${'♡'.repeat(player.maxHp - player.hp)}`;
-    if (cyclesEl) cyclesEl.textContent = testerMode ? '∞' : player.cycles;
+    if (cyclesEl) cyclesEl.textContent = gameMode === 'explorer' ? '∞' : player.cycles;
     if (weaponEl) weaponEl.textContent = player.activeWeapon === 'sword'
       ? CONFIG.swords[player.swordTier].name
       : CONFIG.slingshots[player.slingshotTier].name;

@@ -8,6 +8,10 @@ export { checkHazards } from './hazards.js';
 export { collectedCrystals };
 export { getBiomeAtDistance } from './generation.js';
 
+export function resetCollectedCrystals() {
+  collectedCrystals.clear();
+}
+
 export function getBiomeAtPosition(worldX, worldY) {
   if (isInsideShopSector(worldX, worldY)) {
     return {

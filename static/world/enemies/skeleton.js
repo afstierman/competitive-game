@@ -145,11 +145,11 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetSkeletons() {
+export function resetSkeletons(preserveProgress = false) {
   skeletons.clear();
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageSkeletons(player, swingAngle) {

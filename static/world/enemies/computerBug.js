@@ -89,10 +89,10 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetComputerBugs() {
+export function resetComputerBugs(preserveProgress = false) {
   enemiesByCell.clear();
   spawnTimer = BUG_CONFIG.spawnRate.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageComputerBugs(player, swingAngle) {

@@ -136,12 +136,12 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetComputerViruses() {
+export function resetComputerViruses(preserveProgress = false) {
   viruses.clear();
   effects = [];
   nextId = 0;
   spawnTimer = SPAWN.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageComputerViruses(player, swingAngle) {

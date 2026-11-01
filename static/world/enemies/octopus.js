@@ -142,10 +142,10 @@ function applySlash(player, swingAngle) {
   }
 }
 
-export function resetOctopuses() {
+export function resetOctopuses(preserveProgress = false) {
   octopusesByTile.clear();
   spawnTimer = OCTOPUS_CONFIG.spawnRate.initialDelay;
-  totalKills = 0;
+  if (!preserveProgress) totalKills = 0;
 }
 
 export function damageOctopuses(player, swingAngle) {

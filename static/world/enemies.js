@@ -48,14 +48,14 @@ export function summonInfernalBoss(x, y, player, canvas) {
   startInfernalBoss(x, y, player, canvas);
 }
 
-export function resetEnemies() {
-  resetComputerBugs();
-  resetOctopuses();
-  resetCrabs();
-  resetComputerViruses();
-  resetMalwareWorms();
-  resetSkeletons();
-  resetMagmaSlugs();
+export function resetEnemies({ preserveProgress = false } = {}) {
+  resetComputerBugs(preserveProgress);
+  resetOctopuses(preserveProgress);
+  resetCrabs(preserveProgress);
+  resetComputerViruses(preserveProgress);
+  resetMalwareWorms(preserveProgress);
+  resetSkeletons(preserveProgress);
+  resetMagmaSlugs(preserveProgress);
   resetOvergrowthBossEgg();
   resetAbyssBossEgg();
   resetVoidBossEgg();
