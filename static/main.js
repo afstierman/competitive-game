@@ -2,7 +2,7 @@ import { createPlayer, startPlayerAttack, releasePlayerAttack, updatePlayer, dra
 import { CONFIG } from './config.js';
 import { drawWorld, getBiomeAtPosition, resetCollectedCrystals } from './world/world.js';
 import { isNearShop } from './world/shop.js';
-import { drawEnemies, resetEnemies, updateEnemies } from './world/enemies.js';
+import { drawEnemies, getActiveBossKey, resetEnemies, updateEnemies } from './world/enemies.js';
 import { getComputerBugKills } from './world/enemies/computerBug.js';
 import { getCrabKills } from './world/enemies/crab.js';
 import { getOctopusKills } from './world/enemies/octopus.js';
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function refreshShop() {
-    const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
+    const healthUpgradeCost = 5 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
     shopCyclesEl.textContent = gameMode === 'explorer' ? '∞' : player.cycles;
     healButton.textContent = 'Heal 1 heart · 10 crystals';
     healthButton.textContent = `+1 max health · ${healthUpgradeCost} crystals`;
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshShop();
   });
   healthButton.addEventListener('click', () => {
-    const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
+    const healthUpgradeCost = 5 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
     if (!canAfford(healthUpgradeCost) || player.maxHp >= 10) return;
     spendCycles(healthUpgradeCost);
     player.maxHp++;
@@ -268,7 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const diedInMode = gameMode;
     const carriedCycles = player.cycles;
     const resetProgress = diedInMode !== 'normal';
-    resetEnemies({ preserveProgress: !resetProgress });
+    const failedBoss = diedInMode === 'normal' ? getActiveBossKey() : null;
+    resetEnemies({
+      preserveProgress: !resetProgress,
+      preserveEggs: diedInMode === 'normal',
+      failedBossKey: failedBoss
+    });
     window.dispatchEvent(new CustomEvent('simulation-restarted', { detail: { resetProgress } }));
     if (diedInMode === 'hardcore') resetCollectedCrystals();
     overlay.classList.remove('hidden');

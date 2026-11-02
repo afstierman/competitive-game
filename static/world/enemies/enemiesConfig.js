@@ -1,6 +1,26 @@
 import { CONFIG } from '../../config.js';
 
 const DESPAWN_DISTANCE = CONFIG.enemyChaseRange * 2;
+const TAU = Math.PI * 2;
+
+// A small personal drift keeps identical chasers from following the same line.
+export function getNaturalPursuitAngle(enemy, targetX, targetY, dt) {
+  enemy.movementPhase ??= Math.random() * TAU;
+  enemy.movementSide ??= Math.random() < 0.5 ? -1 : 1;
+  enemy.movementPhase += dt * 0.9;
+
+  const dx = targetX - enemy.x;
+  const dy = targetY - enemy.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  let steerX = dx / distance;
+  let steerY = dy / distance;
+  const drift = enemy.movementSide * 0.12 + Math.sin(enemy.movementPhase) * 0.08;
+  const cos = Math.cos(drift);
+  const sin = Math.sin(drift);
+  const variedX = steerX * cos - steerY * sin;
+  const variedY = steerX * sin + steerY * cos;
+  return Math.atan2(variedY, variedX);
+}
 
 export function despawnDistantEnemies(enemies, player) {
   const maxDistanceSquared = DESPAWN_DISTANCE * DESPAWN_DISTANCE;

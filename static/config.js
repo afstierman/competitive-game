@@ -6,22 +6,22 @@ export const CONFIG = {
   enemyChaseRange: 600,
   swords: [
     { name: 'Original Sword', price: 0, damage: 1, color: '#9ca3af' },
-    { name: 'Mossy Sword', price: 25, damage: 2, color: '#4ade80' },
-    { name: 'Aqua Sword', price: 100, damage: 3, color: '#38bdf8' },
-    { name: 'Blackhole Sword', price: 400, damage: 5, color: '#c084fc' },
-    { name: 'Infernal Sword', price: 1000, damage: 10, color: '#ef4444' }
+    { name: 'Mossy Sword', price: 15, damage: 2, color: '#4ade80' },
+    { name: 'Aqua Sword', price: 60, damage: 3, color: '#38bdf8' },
+    { name: 'Blackhole Sword', price: 240, damage: 5, color: '#c084fc' },
+    { name: 'Infernal Sword', price: 600, damage: 10, color: '#ef4444' }
   ],
   slingshots: [
-    { name: 'Mossy Slingshot', price: 25, damage: 1, color: '#4ade80' },
-    { name: 'Aqua Slingshot', price: 100, damage: 2, color: '#38bdf8' },
-    { name: 'Blackhole Slingshot', price: 400, damage: 4, color: '#c084fc' },
-    { name: 'Infernal Slingshot', price: 1000, damage: 6, color: '#ef4444' }
+    { name: 'Mossy Slingshot', price: 15, damage: 1, color: '#4ade80' },
+    { name: 'Aqua Slingshot', price: 60, damage: 2, color: '#38bdf8' },
+    { name: 'Blackhole Slingshot', price: 240, damage: 4, color: '#c084fc' },
+    { name: 'Infernal Slingshot', price: 600, damage: 6, color: '#ef4444' }
   ],
   armors: [
-    { name: 'Mossy Armor', price: 25, blockedDamage: 1, color: '#4ade80' },
-    { name: 'Aqua Armor', price: 100, blockedDamage: 2, color: '#38bdf8' },
-    { name: 'Blackhole Armor', price: 400, blockedDamage: 5, color: '#c084fc' },
-    { name: 'Infernal Armor', price: 1000, blockedDamage: 8, color: '#ef4444' }
+    { name: 'Mossy Armor', price: 15, blockedDamage: 1, color: '#4ade80' },
+    { name: 'Aqua Armor', price: 60, blockedDamage: 2, color: '#38bdf8' },
+    { name: 'Blackhole Armor', price: 240, blockedDamage: 5, color: '#c084fc' },
+    { name: 'Infernal Armor', price: 600, blockedDamage: 8, color: '#ef4444' }
   ],
 
   world: {

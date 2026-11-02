@@ -1,15 +1,30 @@
 import { getComputerVirusKills } from './computerVirus.js';
 import { getMalwareWormKills } from './malwareWorm.js';
+import { drawBossEggIndicator } from './bossEggIndicator.js';
 
 const REQUIRED_KILLS = 5;
 const EGG_HEALTH = 5;
 let egg = null;
 let hasSpawnedEgg = false;
 let nextId = 1;
+let lastSummonLocation = null;
+let bossDefeated = false;
 
-export function resetVoidBossEgg() {
+window.addEventListener('void-boss-defeated', () => {
+  bossDefeated = true;
   egg = null;
-  hasSpawnedEgg = false;
+  hasSpawnedEgg = true;
+});
+
+export function resetVoidBossEgg({ preserveEgg = false, restoreSummonedEgg = false } = {}) {
+  if (!preserveEgg) {
+    bossDefeated = false;
+    lastSummonLocation = null;
+  }
+  const priorEgg = preserveEgg ? egg : null;
+  const restoreLocation = restoreSummonedEgg && lastSummonLocation ? lastSummonLocation : null;
+  egg = bossDefeated ? null : priorEgg || (restoreLocation ? { id: `void-boss-egg-${nextId}`, x: restoreLocation.x, y: restoreLocation.y, hp: EGG_HEALTH, maxHp: EGG_HEALTH } : null);
+  hasSpawnedEgg = bossDefeated || Boolean(egg);
   nextId = 1;
 }
 
@@ -38,6 +53,7 @@ export function damageVoidBossEgg(player, swingAngle, onSummonBoss) {
   player.attackHitEnemies.add(egg.id);
   if (egg.hp <= 0) {
     const defeatedEgg = egg;
+    lastSummonLocation = { x: defeatedEgg.x, y: defeatedEgg.y };
     egg = null;
     player.cycles += 10;
     if (typeof onSummonBoss === 'function') onSummonBoss(defeatedEgg.x, defeatedEgg.y, player);
@@ -78,4 +94,5 @@ export function drawVoidBossEgg(ctx, player, time) {
     ctx.fillStyle = '#c084fc'; ctx.fillRect(x - 18, y - 23, 36 * egg.hp / egg.maxHp, 4);
   }
   ctx.restore();
+  drawBossEggIndicator(ctx, player, egg);
 }

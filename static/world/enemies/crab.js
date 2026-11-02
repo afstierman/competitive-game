@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, getNaturalPursuitAngle, isSlingshotHit } from './enemiesConfig.js';
 
 const CRAB_CONFIG = ENEMIES_CONFIG.crab;
 const BLUE_SECTION_INNER_RADIUS = CONFIG.biomes[0].maxDistance;
@@ -187,9 +187,10 @@ export function updateCrabs(player, dt, onDeath) {
 
         crab.walkTimer += dt * 10;
         // Far away: close in at an angle. Close: scuttle sideways around the player.
+        const pursuitAngle = getNaturalPursuitAngle(crab, player.x, player.y, dt);
         const heading = distance > 120
-          ? toPlayer + crab.strafeDir * 0.5
-          : toPlayer + crab.strafeDir * 1.3;
+          ? pursuitAngle + crab.strafeDir * 0.5
+          : pursuitAngle + crab.strafeDir * 1.3;
         moveCrab(crab, heading, baseSpeed, dt);
       }
 

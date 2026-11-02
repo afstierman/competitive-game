@@ -16,14 +16,18 @@ import { damageInfernalBoss, drawInfernalBoss, isInfernalBossActive, resetInfern
 
 // Every boss plugs in here. Only one can be active at a time.
 const BOSSES = [
-  { isActive: isOvergrowthBossActive, damage: damageOvergrowthBoss, update: updateOvergrowthBoss, draw: drawOvergrowthBoss },
-  { isActive: isAbyssBossActive, damage: damageAbyssBoss, update: updateAbyssBoss, draw: drawAbyssBoss },
-  { isActive: isVoidBossActive, damage: damageVoidBoss, update: updateVoidBoss, draw: drawVoidBoss },
-  { isActive: isInfernalBossActive, damage: damageInfernalBoss, update: updateInfernalBoss, draw: drawInfernalBoss }
+  { key: 'overgrowth', isActive: isOvergrowthBossActive, damage: damageOvergrowthBoss, update: updateOvergrowthBoss, draw: drawOvergrowthBoss },
+  { key: 'abyss', isActive: isAbyssBossActive, damage: damageAbyssBoss, update: updateAbyssBoss, draw: drawAbyssBoss },
+  { key: 'void', isActive: isVoidBossActive, damage: damageVoidBoss, update: updateVoidBoss, draw: drawVoidBoss },
+  { key: 'infernal', isActive: isInfernalBossActive, damage: damageInfernalBoss, update: updateInfernalBoss, draw: drawInfernalBoss }
 ];
 
 function getActiveBoss() {
   return BOSSES.find(entry => entry.isActive()) || null;
+}
+
+export function getActiveBossKey() {
+  return getActiveBoss()?.key || null;
 }
 
 function getSwingAngle(player) {
@@ -48,7 +52,7 @@ export function summonInfernalBoss(x, y, player, canvas) {
   startInfernalBoss(x, y, player, canvas);
 }
 
-export function resetEnemies({ preserveProgress = false } = {}) {
+export function resetEnemies({ preserveProgress = false, preserveEggs = false, failedBossKey = null } = {}) {
   resetComputerBugs(preserveProgress);
   resetOctopuses(preserveProgress);
   resetCrabs(preserveProgress);
@@ -56,10 +60,10 @@ export function resetEnemies({ preserveProgress = false } = {}) {
   resetMalwareWorms(preserveProgress);
   resetSkeletons(preserveProgress);
   resetMagmaSlugs(preserveProgress);
-  resetOvergrowthBossEgg();
-  resetAbyssBossEgg();
-  resetVoidBossEgg();
-  resetInfernalBossEgg();
+  resetOvergrowthBossEgg({ preserveEgg: preserveEggs, restoreSummonedEgg: failedBossKey === 'overgrowth' });
+  resetAbyssBossEgg({ preserveEgg: preserveEggs, restoreSummonedEgg: failedBossKey === 'abyss' });
+  resetVoidBossEgg({ preserveEgg: preserveEggs, restoreSummonedEgg: failedBossKey === 'void' });
+  resetInfernalBossEgg({ preserveEgg: preserveEggs, restoreSummonedEgg: failedBossKey === 'infernal' });
   resetOvergrowthBoss();
   resetAbyssBoss();
   resetVoidBoss();

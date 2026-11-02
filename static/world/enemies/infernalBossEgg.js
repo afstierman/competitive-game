@@ -2,6 +2,7 @@ import { CONFIG } from '../../config.js';
 import { findOpenPosition } from '../world.js';
 import { getSkeletonKills } from './skeleton.js';
 import { getMagmaSlugKills } from './magmaSlug.js';
+import { drawBossEggIndicator } from './bossEggIndicator.js';
 
 const REQUIRED_KILLS = 5;
 const EGG_HEALTH = 8;
@@ -9,10 +10,24 @@ const INNER_RADIUS = CONFIG.biomes[2].maxDistance;
 let egg = null;
 let hasSpawnedEgg = false;
 let nextId = 1;
+let lastSummonLocation = null;
+let bossDefeated = false;
 
-export function resetInfernalBossEgg() {
+window.addEventListener('infernal-boss-defeated', () => {
+  bossDefeated = true;
   egg = null;
-  hasSpawnedEgg = false;
+  hasSpawnedEgg = true;
+});
+
+export function resetInfernalBossEgg({ preserveEgg = false, restoreSummonedEgg = false } = {}) {
+  if (!preserveEgg) {
+    bossDefeated = false;
+    lastSummonLocation = null;
+  }
+  const priorEgg = preserveEgg ? egg : null;
+  const restoreLocation = restoreSummonedEgg && lastSummonLocation ? lastSummonLocation : null;
+  egg = bossDefeated ? null : priorEgg || (restoreLocation ? { id: `infernal-boss-egg-${nextId}`, x: restoreLocation.x, y: restoreLocation.y, hp: EGG_HEALTH, maxHp: EGG_HEALTH } : null);
+  hasSpawnedEgg = bossDefeated || Boolean(egg);
   nextId = 1;
 }
 
@@ -41,6 +56,7 @@ export function damageInfernalBossEgg(player, swingAngle, onSummonBoss) {
   player.attackHitEnemies.add(egg.id);
   if (egg.hp <= 0) {
     const defeatedEgg = egg;
+    lastSummonLocation = { x: defeatedEgg.x, y: defeatedEgg.y };
     egg = null;
     player.cycles += 10;
     if (typeof onSummonBoss === 'function') onSummonBoss(defeatedEgg.x, defeatedEgg.y, player);
@@ -87,4 +103,5 @@ export function drawInfernalBossEgg(ctx, player, time) {
     ctx.fillStyle = '#fb923c'; ctx.fillRect(x - 20, y - 35, 40 * egg.hp / egg.maxHp, 4);
   }
   ctx.restore();
+  drawBossEggIndicator(ctx, player, egg);
 }

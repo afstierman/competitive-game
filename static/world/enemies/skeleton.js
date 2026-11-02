@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, getNaturalPursuitAngle, isSlingshotHit } from './enemiesConfig.js';
 
 const SKELETON_CONFIG = ENEMIES_CONFIG.skeleton;
 const SPAWN = SKELETON_CONFIG.spawnRate;
@@ -193,7 +193,7 @@ export function updateSkeletons(player, dt, canvas, onDeath) {
       skeleton.sweepAngle = skeleton.facing > 0 ? 1.2 : Math.PI - 1.2;
       if (distance < CONFIG.enemyChaseRange && distance > 40) {
         skeleton.walkTimer += dt * 9;
-        moveSkeleton(skeleton, toPlayer, SKELETON_CONFIG.movementSpeed, dt);
+        moveSkeleton(skeleton, getNaturalPursuitAngle(skeleton, player.x, player.y, dt), SKELETON_CONFIG.movementSpeed, dt);
       }
       if (distance < ATTACK.triggerRange && skeleton.attackCooldown === 0) {
         skeleton.comboIndex = 0;

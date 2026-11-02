@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, getNaturalPursuitAngle, isSlingshotHit } from './enemiesConfig.js';
 
 const VIRUS_CONFIG = ENEMIES_CONFIG.computerVirus;
 const SPAWN = VIRUS_CONFIG.spawnRate;
@@ -188,9 +188,10 @@ export function updateComputerViruses(player, dt, onDeath) {
       if (distance < CONFIG.enemyChaseRange && distance > 20) {
         virus.walkTimer += dt * 16;
         // Slight zigzag so the approach is harder to line up
+        const pursuitAngle = getNaturalPursuitAngle(virus, player.x, player.y, dt);
         const heading = distance > 90
-          ? toPlayer + Math.sin(virus.walkTimer * 0.35) * 0.35
-          : toPlayer;
+          ? pursuitAngle + Math.sin(virus.walkTimer * 0.35) * 0.35
+          : pursuitAngle;
         moveVirus(virus, heading, VIRUS_CONFIG.movementSpeed, dt);
       }
 

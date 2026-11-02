@@ -1,15 +1,30 @@
 import { CONFIG } from '../../config.js';
 import { getComputerBugKills } from './computerBug.js';
+import { drawBossEggIndicator } from './bossEggIndicator.js';
 
 const REQUIRED_KILLS = 5;
 const EGG_HEALTH = 5;
 let egg = null;
 let hasSpawnedEgg = false;
 let nextId = 1;
+let lastSummonLocation = null;
+let bossDefeated = false;
 
-export function resetOvergrowthBossEgg() {
+window.addEventListener('overgrowth-boss-defeated', () => {
+  bossDefeated = true;
   egg = null;
-  hasSpawnedEgg = false;
+  hasSpawnedEgg = true;
+});
+
+export function resetOvergrowthBossEgg({ preserveEgg = false, restoreSummonedEgg = false } = {}) {
+  if (!preserveEgg) {
+    bossDefeated = false;
+    lastSummonLocation = null;
+  }
+  const priorEgg = preserveEgg ? egg : null;
+  const restoreLocation = restoreSummonedEgg && lastSummonLocation ? lastSummonLocation : null;
+  egg = bossDefeated ? null : priorEgg || (restoreLocation ? { id: `mossy-boss-egg-${nextId}`, x: restoreLocation.x, y: restoreLocation.y, hp: EGG_HEALTH, maxHp: EGG_HEALTH } : null);
+  hasSpawnedEgg = bossDefeated || Boolean(egg);
   nextId = 1;
 }
 
@@ -39,6 +54,7 @@ export function damageOvergrowthBossEgg(player, swingAngle, onSummonBoss) {
   player.attackHitEnemies.add(egg.id);
   if (egg.hp <= 0) {
     const defeatedEgg = egg;
+    lastSummonLocation = { x: defeatedEgg.x, y: defeatedEgg.y };
     egg = null;
     player.cycles += 10;
     if (typeof onSummonBoss === 'function') onSummonBoss(defeatedEgg.x, defeatedEgg.y, player);
@@ -80,4 +96,5 @@ export function drawOvergrowthBossEgg(ctx, player, time) {
     ctx.fillStyle = '#a3e635'; ctx.fillRect(x - 18, y - 23, 36 * egg.hp / egg.maxHp, 4);
   }
   ctx.restore();
+  drawBossEggIndicator(ctx, player, egg);
 }

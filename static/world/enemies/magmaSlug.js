@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { checkCollision, getObstacleAvoidanceAngle } from '../world.js';
 import { getTileEnvironment } from '../generation.js';
 import { isInsideShopSector } from '../shop.js';
-import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, isSlingshotHit } from './enemiesConfig.js';
+import { ENEMIES_CONFIG, damageAfterArmor, despawnDistantEnemies, getNaturalPursuitAngle, isSlingshotHit } from './enemiesConfig.js';
 
 const SLUG_CONFIG = ENEMIES_CONFIG.magmaSlug;
 const SPAWN = SLUG_CONFIG.spawnRate;
@@ -251,9 +251,10 @@ export function updateMagmaSlugs(player, dt, onDeath) {
         }
 
         let heading;
-        if (distance > SPIT.range - 40) heading = toPlayer;                     // close in
-        else if (distance < SPIT.minRange) heading = toPlayer + Math.PI;        // back off
-        else heading = toPlayer + slug.strafeDir * Math.PI / 2;                 // circle
+        const pursuitAngle = getNaturalPursuitAngle(slug, player.x, player.y, dt);
+        if (distance > SPIT.range - 40) heading = pursuitAngle;                     // close in
+        else if (distance < SPIT.minRange) heading = pursuitAngle + Math.PI;        // back off
+        else heading = pursuitAngle + slug.strafeDir * Math.PI / 2;                 // circle
 
         slug.walkTimer += dt * (slug.onLava ? 8 : 5);
         moveSlug(slug, heading, speed, dt);
