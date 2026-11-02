@@ -334,6 +334,8 @@
     background: rgba(31, 41, 55, 0.78);
   }
 
+  .creature-copy { min-width: 0; }
+
   .creature-entry h3 {
     margin: 0;
     color: #f9fafb;
@@ -354,6 +356,20 @@
 
   .creature-entry .creature-tip {
     color: #facc15;
+  }
+
+  .creature-entry .creature-progress {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #475569;
+    color: #fde68a;
+    font-weight: bold;
+  }
+
+  @media (max-width: 540px) {
+    .creature-entry {
+      padding: 10px;
+    }
   }
 
   .almanac-close {

@@ -364,31 +364,31 @@ document.addEventListener('DOMContentLoaded', () => {
       : CONFIG.slingshots[player.slingshotTier].name;
     if (bugKillProgressEl) {
       const kills = getComputerBugKills();
-      bugKillProgressEl.textContent = kills >= 5 ? `${kills} defeated · egg ready` : `${kills} / 5 defeated · egg progress`;
+      bugKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     if (crabKillProgressEl) {
       const kills = getCrabKills();
-      crabKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · threshold met' : ''}`;
+      crabKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     if (octopusKillProgressEl) {
       const kills = getOctopusKills();
-      octopusKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · threshold met' : ''}`;
+      octopusKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     if (virusKillProgressEl) {
       const kills = getComputerVirusKills();
-      virusKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · threshold met' : ''}`;
+      virusKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     if (wormKillProgressEl) {
       const kills = getMalwareWormKills();
-      wormKillProgressEl.textContent = `${kills} / 5 worm families defeated${kills >= 5 ? ' · threshold met' : ''}`;
+      wormKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 worm families`;
     }
     if (skeletonKillProgressEl) {
       const kills = getSkeletonKills();
-      skeletonKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · threshold met' : ''}`;
+      skeletonKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     if (slugKillProgressEl) {
       const kills = getMagmaSlugKills();
-      slugKillProgressEl.textContent = `${kills} / 5 defeated${kills >= 5 ? ' · infernal egg ready' : ''}`;
+      slugKillProgressEl.textContent = `Boss progress: ${Math.min(kills, 5)} / 5 defeated`;
     }
     drawWorld(ctx, canvas, player, timestamp);
     drawEnemies(ctx, player, canvas, timestamp);
