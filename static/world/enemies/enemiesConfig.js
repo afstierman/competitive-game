@@ -388,7 +388,9 @@ export const ENEMIES_CONFIG = {
     nova: {
       windup: 1.1,
       rings: 3,
-      ringSpeed: 120,
+      ringSpeed: 75,
+      ringGap: 1.1,
+      gapWidth: 1.3,
       damage: 8,
       radius: 12,
       recover: 1.2
