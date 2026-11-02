@@ -210,13 +210,52 @@ export function drawPlayer(ctx, player, mouse, canvas) {
   ctx.fillStyle = '#cbd5e1';
   ctx.fillRect(-10, -12, 3, 23);
   ctx.fillRect(7, -12, 3, 23);
-  if (player.armorColor) {
-    ctx.fillStyle = player.armorColor;
-    ctx.fillRect(-9, -8, 18, 13);
-    ctx.fillRect(-12, -10, 5, 5);
-    ctx.fillRect(7, -10, 5, 5);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-    ctx.fillRect(-7, -6, 2, 9);
+  if (player.armorTier > 0 && player.armorColor) {
+    const armor = player.armorColor;
+    const darkArmor = ['#15803d', '#0369a1', '#6b21a8', '#b91c1c'][player.armorTier - 1] || '#334155';
+    const glint = ['#bbf7d0', '#bae6fd', '#e9d5ff', '#fecaca'][player.armorTier - 1] || '#e2e8f0';
+
+    // Shoulder plates sit over the coat and give each upgrade a stronger silhouette.
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-13, -11, 8, 8);
+    ctx.fillRect(5, -11, 8, 8);
+    ctx.fillStyle = darkArmor;
+    ctx.fillRect(-12, -12, 7, 7);
+    ctx.fillRect(5, -12, 7, 7);
+    ctx.fillStyle = armor;
+    ctx.fillRect(-11, -12, 5, 4);
+    ctx.fillRect(6, -12, 5, 4);
+
+    // Segmented breastplate leaves the coat's center seam visible as a gear detail.
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-9, -7, 18, 15);
+    ctx.fillStyle = darkArmor;
+    ctx.fillRect(-8, -6, 16, 13);
+    ctx.fillStyle = armor;
+    ctx.fillRect(-7, -6, 14, 4);
+    ctx.fillRect(-7, 0, 14, 5);
+    ctx.fillStyle = glint;
+    ctx.fillRect(-6, -5, 2, 3);
+    ctx.fillRect(-6, 1, 2, 3);
+    ctx.fillStyle = darkArmor;
+    ctx.fillRect(-1, -5, 2, 11);
+
+    // Forearm guards and a bright tier badge make the upgrade visible while moving.
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-13, -3, 5, 10);
+    ctx.fillRect(8, -3, 5, 10);
+    ctx.fillStyle = armor;
+    ctx.fillRect(-12, -2, 3, 8);
+    ctx.fillRect(9, -2, 3, 8);
+    ctx.fillStyle = glint;
+    ctx.fillRect(-11, -1, 1, 3);
+    ctx.fillRect(10, -1, 1, 3);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-8, 7, 16, 3);
+    ctx.fillStyle = armor;
+    ctx.fillRect(-7, 7, 14, 2);
+    ctx.fillStyle = glint;
+    ctx.fillRect(-1, 7, 2, 2);
   }
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(-4, -12, 8, 15);
