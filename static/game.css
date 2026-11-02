@@ -103,6 +103,57 @@
     text-align: center;
     padding: 30px;
     z-index: 10;
+    overflow-y: auto;
+  }
+
+  .screen-overlay .mission-summary {
+    max-width: 620px;
+    margin: 0 0 16px;
+    color: #e2e8f0;
+    line-height: 1.5;
+  }
+
+  .mission-sectors {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    width: min(620px, 100%);
+    margin: 0 0 14px;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  .mission-sectors li {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid #334155;
+    background: #111827;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+
+  .mission-sectors strong { color: #f8fafc; }
+  .mission-sectors span { color: #94a3b8; }
+
+  .screen-overlay .mission-tip {
+    max-width: 620px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .goal-sectors {
+    margin: -8px 0 18px;
+    padding-left: 20px;
+  }
+
+  .goal-sectors li { margin: 5px 0; }
+
+  @media (max-height: 620px) {
+    .screen-overlay { justify-content: flex-start; }
   }
   
   .screen-overlay.hidden {

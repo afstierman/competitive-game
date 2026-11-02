@@ -38,27 +38,33 @@
             <li><strong>Esc</strong> — Close a panel</li>
           </ul>
           <h3>Current goal</h3>
-          <p>Explore the sectors, collect crystals for cycles, and return to the central hub to buy stronger swords, armor, and healing. Learn each creature’s weakness in the almanac and survive as far as you can.</p>
+          <p>Defeat 5 of each monster in a sector to summon its boss. Beat all 4 bosses, traveling outward through sectors that grow more dangerous each time. Collect crystals and return to the hub to gear up between expeditions.</p>
+          <ul class="goal-sectors">
+            <li><strong>Mossy Overgrowth</strong> → Overgrowth boss</li>
+            <li><strong>Sunken Abyss</strong> → Abyss boss</li>
+            <li><strong>Void Nebula</strong> → Void boss</li>
+            <li><strong>Infernal Kernel</strong> → Infernal boss</li>
+          </ul>
           <h3>Game mode</h3>
-          <p>Normal: lose carried cycles on death but keep items, trophies, and monster progress. Hardcore: lose all progress and collected crystals return. Explorer: unlimited cycles for testing.</p>
+          <p>Normal: lose carried crystals on death but keep items, trophies, and monster progress. Hardcore: lose all progress and collected crystals return. Explorer: unlimited crystals for trying all features.</p>
           <button id="game-mode" class="tester-toggle" type="button">Mode: Normal</button>
-          <p id="mode-status" class="tester-status" aria-live="polite">Normal mode: cycles are lost on death; items and progress are kept.</p>
+          <p id="mode-status" class="tester-status" aria-live="polite">Normal mode: carried crystals are lost on death; items and progress are kept.</p>
         </div>
       </section>
 
       <div id="shop-panel" class="shop-panel hidden">
         <button id="shop-close" class="shop-close" aria-label="Close shop">×</button>
         <h2>Little Hub Shop</h2>
-        <p class="shop-currency">Cycles: <strong id="shop-cycles">0</strong></p>
+        <p class="shop-currency">Crystals: <strong id="shop-cycles">0</strong></p>
         <h3 class="shop-section-title">Sword upgrade</h3>
-        <button id="buy-sword" class="weapon-offer">Mossy Sword · 2 damage · 25 cycles</button>
+        <button id="buy-sword" class="weapon-offer">Mossy Sword · 2 damage · 25 crystals</button>
         <h3 class="shop-section-title">Slingshot</h3>
-        <button id="buy-slingshot" class="weapon-offer">Mossy Slingshot · 2 damage · 25 cycles</button>
+        <button id="buy-slingshot" class="weapon-offer">Mossy Slingshot · 2 damage · 25 crystals</button>
         <h3 class="shop-section-title">Armor upgrade</h3>
-        <button id="buy-armor" class="armor-offer">Mossy Armor · blocks 1 damage · 25 cycles</button>
+        <button id="buy-armor" class="armor-offer">Mossy Armor · blocks 1 damage · 25 crystals</button>
         <h3 class="shop-section-title">Supplies</h3>
-        <button id="buy-heal">Heal 1 heart · 10 cycles</button>
-        <button id="buy-health">+1 max health · 10 cycles</button>
+        <button id="buy-heal">Heal 1 heart · 10 crystals</button>
+        <button id="buy-health">+1 max health · 10 crystals</button>
         <p id="shop-status" aria-live="polite">Welcome, explorer!</p>
       </div>
 
@@ -137,8 +143,15 @@
       </section>
       
       <div id="start-screen" class="screen-overlay">
-        <h2>READY TO DEPLOY?</h2>
-        <p>Explore the procedural grid. Return to (0,0) for the Hub.</p>
+        <h2>YOUR MISSION</h2>
+        <p class="mission-summary">Defeat 5 of each monster in every sector to summon its boss. Beat all 4 bosses as you push into increasingly dangerous sectors.</p>
+        <ol class="mission-sectors">
+          <li><strong>Mossy Overgrowth</strong><span>Overgrowth boss</span></li>
+          <li><strong>Sunken Abyss</strong><span>Abyss boss</span></li>
+          <li><strong>Void Nebula</strong><span>Void boss</span></li>
+          <li><strong>Infernal Kernel</strong><span>Infernal boss</span></li>
+        </ol>
+        <p class="mission-tip">Use the <strong>i</strong> guide for controls and the <strong>📖</strong> almanac to track kills. Return to the hub at (0,0) to buy upgrades.</p>
         <button id="launch-btn">ENTER SIMULATION</button>
       </div>
     </div>

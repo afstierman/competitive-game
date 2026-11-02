@@ -43,24 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const gameModes = ['normal', 'hardcore', 'explorer'];
 
   let cyclesEl = document.getElementById('ui-cycles');
-  let biomeEl = document.getElementById('ui-biome');
 
   const statsContainer = document.querySelector('.stats');
   if (statsContainer) {
     if (!cyclesEl) {
       const span = document.createElement('span');
-      span.innerHTML = 'CYCLES: <strong id="ui-cycles">0</strong>';
+      span.innerHTML = 'CRYSTALS: <strong id="ui-cycles">0</strong>';
       statsContainer.appendChild(span);
       cyclesEl = document.getElementById('ui-cycles');
     }
-    if (!biomeEl) {
-      const span = document.createElement('span');
-      span.innerHTML = '<strong id="ui-biome">Mossy Overgrowth</strong>';
-      statsContainer.insertBefore(span, statsContainer.firstChild);
-      biomeEl = document.getElementById('ui-biome');
-    }
   }
-  if (biomeEl) biomeEl.textContent = '';
 
   let isRunning = false;
   let player = createPlayer();
@@ -86,13 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function refreshShop() {
     const healthUpgradeCost = 10 * (2 ** Math.max(0, player.maxHp - CONFIG.maxHp));
     shopCyclesEl.textContent = gameMode === 'explorer' ? '∞' : player.cycles;
-    healButton.textContent = 'Heal 1 heart · 10 cycles';
-    healthButton.textContent = `+1 max health · ${healthUpgradeCost} cycles`;
+    healButton.textContent = 'Heal 1 heart · 10 crystals';
+    healthButton.textContent = `+1 max health · ${healthUpgradeCost} crystals`;
     healButton.disabled = !canAfford(10) || player.hp >= player.maxHp;
     healthButton.disabled = !canAfford(healthUpgradeCost) || player.maxHp >= 10;
     const nextSword = CONFIG.swords[player.swordTier + 1];
     if (nextSword) {
-      swordButton.textContent = `${nextSword.name} · ${nextSword.damage} damage · ${nextSword.price} cycles`;
+      swordButton.textContent = `${nextSword.name} · ${nextSword.damage} damage · ${nextSword.price} crystals`;
       swordButton.style.setProperty('--weapon-color', nextSword.color);
       swordButton.disabled = !canAfford(nextSword.price);
     } else {
@@ -103,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const nextArmor = CONFIG.armors[player.armorTier];
     if (nextArmor) {
-      armorButton.textContent = `${nextArmor.name} · blocks ${nextArmor.blockedDamage} damage · ${nextArmor.price} cycles`;
+      armorButton.textContent = `${nextArmor.name} · blocks ${nextArmor.blockedDamage} damage · ${nextArmor.price} crystals`;
       armorButton.style.setProperty('--armor-color', nextArmor.color);
       armorButton.style.color = nextArmor.color;
       armorButton.disabled = !canAfford(nextArmor.price);
@@ -116,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const nextSlingshot = CONFIG.slingshots[player.slingshotTier + 1];
     if (nextSlingshot) {
-      slingshotButton.textContent = `${nextSlingshot.name} · ${nextSlingshot.damage} damage · ${nextSlingshot.price} cycles`;
+      slingshotButton.textContent = `${nextSlingshot.name} · ${nextSlingshot.damage} damage · ${nextSlingshot.price} crystals`;
       slingshotButton.style.setProperty('--weapon-color', nextSlingshot.color);
       slingshotButton.disabled = !canAfford(nextSlingshot.price);
     } else {
@@ -233,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     gameMode = gameModes[(gameModes.indexOf(gameMode) + 1) % gameModes.length];
     gameModeSelect.textContent = `Mode: ${gameMode[0].toUpperCase()}${gameMode.slice(1)}`;
     const descriptions = {
-      normal: 'Normal mode: cycles are lost on death; items and progress are kept.',
+      normal: 'Normal mode: carried crystals are lost on death; items and progress are kept.',
       hardcore: 'Hardcore mode: death resets your run and collected crystals respawn.',
       explorer: 'Explorer mode: shop purchases are free and progress resets on death.'
     };
@@ -281,10 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (diedInMode === 'hardcore') resetCollectedCrystals();
     overlay.classList.remove('hidden');
     const deathResult = diedInMode === 'normal'
-      ? `Lost Cycles: <b>${carriedCycles}</b><br>Items and progress kept.`
+      ? `Lost crystals: <b>${carriedCycles}</b><br>Items and progress kept.`
       : diedInMode === 'hardcore'
         ? 'All run progress reset. Crystals have respawned.'
-        : `Extracted Cycles: <b>${carriedCycles}</b>`;
+        : `Extracted crystals: <b>${carriedCycles}</b>`;
     overlay.innerHTML = `
       <h2 style="color:#f87171;">SYSTEM TERMINATED</h2>
       <p>${reason}<br>${deathResult}</p>
@@ -362,10 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
       currentBiomeName = activeBiome.name;
       bannerText = currentBiomeName;
       bannerTimer = currentBiomeName ? 3.0 : 0;
-      if (biomeEl) {
-        biomeEl.textContent = currentBiomeName;
-        if (currentBiomeName) biomeEl.style.color = activeBiome.crystal.color;
-      }
     }
 
     posEl.textContent = `${Math.round(player.x)}, ${Math.round(player.y)}`;
